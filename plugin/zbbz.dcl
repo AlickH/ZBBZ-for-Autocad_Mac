@@ -65,5 +65,27 @@ SetDimZB : dialog {
     }
   }
   spacer;
-  ok_cancel_help;
+  : row {
+    alignment = centered;
+    : button {
+      key = "accept";
+      label = "OK";
+      is_default = true;
+      fixed_width = true;
+      width = 12;
+    }
+    : button {
+      key = "cancel";
+      label = "Cancel";
+      is_cancel = true;
+      fixed_width = true;
+      width = 12;
+    }
+    : button {
+      key = "help";
+      label = "Help";
+      fixed_width = true;
+      width = 12;
+    }
+  }
 }

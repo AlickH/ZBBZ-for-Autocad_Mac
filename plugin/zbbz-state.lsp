@@ -1,4 +1,5 @@
 (setq *zbbz-settings* nil)
+(setq *zbbz-settings-initialized* nil)
 
 (defun zbbz-state-defaults ()
   (list
@@ -22,10 +23,11 @@
     (cons 'prefix_mode 'xy)))
 
 (defun zbbz-state-reset ()
-  (setq *zbbz-settings* (zbbz-state-defaults)))
+  (setq *zbbz-settings* (zbbz-state-defaults))
+  (setq *zbbz-settings-initialized* T))
 
 (defun zbbz-state-ensure ()
-  (if (null *zbbz-settings*)
+  (if (or (null *zbbz-settings*) (null *zbbz-settings-initialized*))
     (zbbz-state-reset))
   *zbbz-settings*)
 
