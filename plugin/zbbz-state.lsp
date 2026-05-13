@@ -5,16 +5,6 @@
   (zbbz-plugin-path "zbbz-config.lsp")
 )
 
-(defun zbbz-state-debug-prompt (text)
-  (prompt (strcat "\nZBBZSTATE " text))
-  (zbbz-debug-log (strcat "ZBBZSTATE " text))
-)
-
-(defun zbbz-state-debug-value (label value)
-  (zbbz-state-debug-prompt
-    (strcat label "=" (vl-prin1-to-string value)))
-)
-
 (defun zbbz-state-defaults ()
   (list
     (cons 'coord_mode 'current)
@@ -63,8 +53,6 @@
   normalized)
 
 (defun zbbz-state-save-config ( / file_handle )
-  (zbbz-state-debug-prompt (strcat "save path=" (zbbz-state-config-path)))
-  (zbbz-state-debug-value "save settings" *zbbz-settings*)
   (setq file_handle (open (zbbz-state-config-path) "w"))
   (if file_handle
     (progn
@@ -76,17 +64,14 @@
 )
 
 (defun zbbz-state-load-config ( / file_handle config_line config_value )
-  (zbbz-state-debug-prompt (strcat "load path=" (zbbz-state-config-path)))
   (setq file_handle (open (zbbz-state-config-path) "r"))
   (if file_handle
     (progn
       (setq config_line (read-line file_handle))
       (close file_handle)
-      (zbbz-state-debug-value "raw config line" config_line)
       (if config_line
         (progn
           (setq config_value (read config_line))
-          (zbbz-state-debug-value "parsed config" config_value)
           (if config_value
             (zbbz-state-normalize-settings config_value)
             (zbbz-state-defaults)
@@ -108,14 +93,12 @@
 (defun zbbz-state-ensure ()
   (if (or (null *zbbz-settings*) (null *zbbz-settings-initialized*))
     (progn
-      (zbbz-state-debug-prompt "ensure triggered load")
       (setq loaded_config (zbbz-state-load-config))
       (if loaded_config
         (setq *zbbz-settings* loaded_config)
         (setq *zbbz-settings* (zbbz-state-defaults))
       )
       (setq *zbbz-settings-initialized* T)
-      (zbbz-state-debug-value "active settings after ensure" *zbbz-settings*)
       (if (null loaded_config)
         (zbbz-state-save-config)
       )

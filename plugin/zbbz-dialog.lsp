@@ -3,11 +3,6 @@
 
 (setq *zbbz-dialog-initializing* nil)
 
-(defun zbbz-dialog-debug-prompt (text)
-  (prompt (strcat "\nZBBZDIALOG " text))
-  (zbbz-debug-log (strcat "ZBBZDIALOG " text))
-)
-
 (defun zbbz-dialog-runtime-dcl-path ()
   (zbbz-plugin-path "zbbz-runtime.dcl"))
 
@@ -126,17 +121,6 @@
 
 (defun zbbz-dialog-populate ()
   (setq *zbbz-dialog-initializing* T)
-  (zbbz-dialog-debug-prompt "populate start")
-  (zbbz-dialog-debug-prompt (strcat "coord_mode=" (vl-prin1-to-string (zbbz-state-get 'coord_mode))))
-  (zbbz-dialog-debug-prompt (strcat "prefix_mode=" (vl-prin1-to-string (zbbz-state-get 'prefix_mode))))
-  (zbbz-dialog-debug-prompt (strcat "precision=" (itoa (zbbz-state-get 'precision))))
-  (zbbz-dialog-debug-prompt (strcat "swap_xy=" (vl-prin1-to-string (zbbz-state-get 'swap_xy))))
-  (zbbz-dialog-debug-prompt (strcat "group_on=" (vl-prin1-to-string (zbbz-state-get 'group_on))))
-  (zbbz-dialog-debug-prompt (strcat "auto_orient=" (vl-prin1-to-string (zbbz-state-get 'auto_orient))))
-  (zbbz-dialog-debug-prompt (strcat "background_mask=" (vl-prin1-to-string (zbbz-state-get 'background_mask))))
-  (zbbz-dialog-debug-prompt (strcat "base_n=" (rtos (zbbz-state-get 'base_n) 2 6)))
-  (zbbz-dialog-debug-prompt (strcat "base_e=" (rtos (zbbz-state-get 'base_e) 2 6)))
-  (zbbz-dialog-debug-prompt (strcat "rotation=" (rtos (zbbz-state-get 'rotation) 2 6)))
   (set_tile "base_n" (zbbz-format-number (zbbz-state-get 'base_n) 6))
   (set_tile "base_e" (zbbz-format-number (zbbz-state-get 'base_e) 6))
   (set_tile "rotation" (zbbz-format-number (zbbz-state-get 'rotation) 6))
@@ -145,13 +129,6 @@
   (set_tile "dim_scale" (zbbz-format-number (zbbz-state-get 'dim_scale) 6))
   (set_tile "text_height" (zbbz-format-number (zbbz-state-get 'text_height) 6))
   (set_tile "background_mask" (zbbz-dialog-bool-to-tile (zbbz-state-get 'background_mask)))
-  (zbbz-dialog-debug-prompt (strcat "precision tile=" (get_tile "precision")))
-  (zbbz-dialog-debug-prompt (strcat "coord_mode tile=" (get_tile "coord_mode")))
-  (zbbz-dialog-debug-prompt (strcat "prefix_mode tile=" (get_tile "prefix_mode")))
-  (zbbz-dialog-debug-prompt (strcat "swap_xy tile=" (get_tile "swap_xy")))
-  (zbbz-dialog-debug-prompt (strcat "group_on tile=" (get_tile "group_on")))
-  (zbbz-dialog-debug-prompt (strcat "auto_orient tile=" (get_tile "auto_orient")))
-  (zbbz-dialog-debug-prompt (strcat "background_mask tile=" (get_tile "background_mask")))
   (zbbz-dialog-update-custom-input-state)
   (zbbz-dialog-sync-preview)
   (setq *zbbz-dialog-initializing* nil))
