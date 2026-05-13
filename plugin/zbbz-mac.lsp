@@ -8,6 +8,9 @@
   (zbbz-load-module "plugin/zbbz-format.lsp")
   (zbbz-load-module "plugin/zbbz-transform.lsp")
   (zbbz-load-module "plugin/zbbz-pick.lsp")
+  (zbbz-load-module "plugin/zbbz-grid.lsp")
+  (zbbz-load-module "plugin/zbbz-dat.lsp")
+  (zbbz-load-module "plugin/zbbz-help.lsp")
   (zbbz-load-module "plugin/zbbz-dialog.lsp")
   (zbbz-load-module "plugin/zbbz-annotate.lsp"))
 

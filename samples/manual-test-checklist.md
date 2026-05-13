@@ -38,9 +38,26 @@
 - [ ] Applying base point and angle switches the mode to custom.
 - [ ] `Known Two-Point Pick` shows the current unimplemented message.
 - [ ] `Known Two-Point Pick` closes the dialog, runs pick/input prompts, and reopens with updated custom values.
-- [ ] `Draw Coordinate Grid` shows the current unimplemented message.
+- [ ] `Draw Coordinate Grid` closes the dialog, runs corner/spacing prompts, and draws grid lines.
 - [ ] `Pick` beside bearing closes the dialog, runs point prompts, and reopens with updated bearing.
-- [ ] `Generate DAT File` shows the current unimplemented message.
+- [ ] `Generate DAT File` writes the Mac DAT schema for the current session.
+
+## Grid
+
+- [ ] Grid drawing works for current/world modes.
+- [ ] Grid drawing works for custom mode using current settings.
+- [ ] Grid spacing follows entered X and Y spacing.
+
+## DAT
+
+- [ ] DAT export writes the schema header.
+- [ ] DAT export writes one row per created annotation.
+- [ ] DAT export includes point coordinates, output coordinates, scale, layer, and text.
+
+## Help
+
+- [ ] Help opens from the dialog.
+- [ ] Help explains coordinate modes, calibration, behavior flags, and DAT export.
 
 ## Annotation
 

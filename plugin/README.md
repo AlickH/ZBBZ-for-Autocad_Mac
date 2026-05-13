@@ -24,6 +24,12 @@ Mac-native rebuild of the evidenced coordinate annotation feature set from the W
   - dialog tile population and action binding
 - `plugin/zbbz-pick.lsp`
   - bearing pick and two-point calibration prompts
+- `plugin/zbbz-grid.lsp`
+  - standard orthogonal coordinate grid drawing
+- `plugin/zbbz-dat.lsp`
+  - DAT export for current annotation session
+- `plugin/zbbz-help.lsp`
+  - built-in help text
 - `plugin/zbbz-annotate.lsp`
   - point selection, text assembly, leader creation, and annotation session records
 
@@ -40,4 +46,4 @@ Mac-native rebuild of the evidenced coordinate annotation feature set from the W
 
 ## Status
 
-Current status includes project skeleton, settings state, output formatting, base coordinate transform math, the main settings dialog shell, the first annotation workflow, bearing pick, and two-point calibration prompts. Grid drawing, DAT export, and help are not implemented yet.
+Current status includes project skeleton, settings state, output formatting, base coordinate transform math, the main settings dialog shell, the first annotation workflow, bearing pick, two-point calibration prompts, standard grid drawing, DAT export, and built-in help.

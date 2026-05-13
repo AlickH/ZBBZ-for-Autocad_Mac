@@ -20,6 +20,19 @@
   (setq out_2 (+ base_e (+ (* scaled_x sin_r) (* scaled_y cos_r))))
   (list out_1 out_2))
 
+; Convert custom output coordinates back into drawing coordinates for grid construction.
+(defun zbbz-transform-point-from-custom (point base_n base_e rotation coord_scale / radians cos_r sin_r out_1 out_2 shifted_1 shifted_2 draw_x draw_y)
+  (setq radians (zbbz-transform-deg-to-rad rotation))
+  (setq cos_r (cos radians))
+  (setq sin_r (sin radians))
+  (setq out_1 (- (car point) base_n))
+  (setq out_2 (- (cadr point) base_e))
+  (setq shifted_1 (+ (* out_1 cos_r) (* out_2 sin_r)))
+  (setq shifted_2 (+ (* (- out_2) cos_r) (* out_1 sin_r)))
+  (setq draw_x (/ shifted_1 coord_scale))
+  (setq draw_y (/ shifted_2 coord_scale))
+  (list draw_x draw_y 0.0))
+
 (defun zbbz-transform-distance-2d (p1 p2)
   (distance (list (car p1) (cadr p1)) (list (car p2) (cadr p2))))
 

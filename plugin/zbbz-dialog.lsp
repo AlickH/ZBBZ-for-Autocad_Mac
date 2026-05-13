@@ -189,11 +189,11 @@
             (if calibration
               (zbbz-pick-apply-calibration calibration)))
           ((eq action_value 'draw_grid)
-            (alert "Grid drawing is not implemented yet."))
+            (zbbz-grid-draw))
           ((eq action_value 'export_dat)
-            (alert "DAT export is not implemented yet."))
+            (zbbz-dat-export-session))
           ((eq action_value 'help)
-            (alert "Help is not implemented yet."))
+            (zbbz-help-show))
           (T
             (setq action_value nil)
             nil))))))
