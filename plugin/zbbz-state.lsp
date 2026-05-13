@@ -43,7 +43,6 @@
   (setq pair (assoc key settings))
   (cond
     ((null pair) nil)
-    ((and (listp pair) (null (cdr pair)) (eq (car pair) key)) T)
     ((atom (cdr pair)) (cdr pair))
     (T (cdr pair))))
 
