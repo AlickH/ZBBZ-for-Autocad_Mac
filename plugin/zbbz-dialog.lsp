@@ -1,6 +1,17 @@
 (defun zbbz-dialog-bool-to-tile (value)
   (if value "1" "0"))
 
+(defun zbbz-dialog-set-coord-mode-tiles (coord_mode)
+  (set_tile "coord_mode_current" (if (eq coord_mode 'current) "1" "0"))
+  (set_tile "coord_mode_world" (if (eq coord_mode 'world) "1" "0"))
+  (set_tile "coord_mode_custom" (if (eq coord_mode 'custom) "1" "0")))
+
+(defun zbbz-dialog-set-prefix-tiles (prefix_mode)
+  (set_tile "prefix_xy" (if (eq prefix_mode 'xy) "1" "0"))
+  (set_tile "prefix_ab" (if (eq prefix_mode 'ab) "1" "0"))
+  (set_tile "prefix_ne" (if (eq prefix_mode 'ne) "1" "0"))
+  (set_tile "prefix_none" (if (eq prefix_mode 'none) "1" "0")))
+
 (defun zbbz-dialog-set-popup-items (key items / index)
   (start_list key)
   (setq index 0)
@@ -11,12 +22,6 @@
 
 (defun zbbz-dialog-default-layers ()
   (list "*CURRENT*" "0"))
-
-(defun zbbz-dialog-default-coord-mode-items ()
-  (list "Current Coordinate System" "World Coordinate System" "Custom Coordinate System"))
-
-(defun zbbz-dialog-default-prefix-items ()
-  (list "XY" "AB" "NE" "None"))
 
 (defun zbbz-dialog-default-arrow-styles ()
   (list "none"))
@@ -49,12 +54,7 @@
   (mode_tile "pick_two_points" enabled_mode))
 
 (defun zbbz-dialog-populate ()
-  (zbbz-dialog-set-popup-items "coord_mode" (zbbz-dialog-default-coord-mode-items))
-  (zbbz-dialog-default-select "coord_mode"
-    (cond
-      ((eq (zbbz-state-get 'coord_mode) 'world) 1)
-      ((eq (zbbz-state-get 'coord_mode) 'custom) 2)
-      (T 0)))
+  (zbbz-dialog-set-coord-mode-tiles (zbbz-state-get 'coord_mode))
   (set_tile "base_n" (zbbz-format-number (zbbz-state-get 'base_n) 6))
   (set_tile "base_e" (zbbz-format-number (zbbz-state-get 'base_e) 6))
   (set_tile "rotation" (zbbz-format-number (zbbz-state-get 'rotation) 6))
@@ -66,13 +66,7 @@
   (set_tile "group_on" (zbbz-dialog-bool-to-tile (zbbz-state-get 'group_on)))
   (set_tile "auto_orient" (zbbz-dialog-bool-to-tile (zbbz-state-get 'auto_orient)))
   (set_tile "background_mask" (zbbz-dialog-bool-to-tile (zbbz-state-get 'background_mask)))
-  (zbbz-dialog-set-popup-items "prefix_mode" (zbbz-dialog-default-prefix-items))
-  (zbbz-dialog-default-select "prefix_mode"
-    (cond
-      ((eq (zbbz-state-get 'prefix_mode) 'ab) 1)
-      ((eq (zbbz-state-get 'prefix_mode) 'ne) 2)
-      ((eq (zbbz-state-get 'prefix_mode) 'none) 3)
-      (T 0)))
+  (zbbz-dialog-set-prefix-tiles (zbbz-state-get 'prefix_mode))
   (zbbz-dialog-set-popup-items "dim_layer" (zbbz-dialog-default-layers))
   (zbbz-dialog-default-select "dim_layer" 0)
   (zbbz-dialog-set-popup-items "arrow_style" (zbbz-dialog-default-arrow-styles))
@@ -100,15 +94,15 @@
 
 (defun zbbz-dialog-save-prefix-mode ()
   (cond
-    ((= (atoi (get_tile "prefix_mode")) 1) (zbbz-state-put 'prefix_mode 'ab))
-    ((= (atoi (get_tile "prefix_mode")) 2) (zbbz-state-put 'prefix_mode 'ne))
-    ((= (atoi (get_tile "prefix_mode")) 3) (zbbz-state-put 'prefix_mode 'none))
+    ((= (get_tile "prefix_ab") "1") (zbbz-state-put 'prefix_mode 'ab))
+    ((= (get_tile "prefix_ne") "1") (zbbz-state-put 'prefix_mode 'ne))
+    ((= (get_tile "prefix_none") "1") (zbbz-state-put 'prefix_mode 'none))
     (T (zbbz-state-put 'prefix_mode 'xy))))
 
 (defun zbbz-dialog-save-coord-mode ()
   (cond
-    ((= (atoi (get_tile "coord_mode")) 1) (zbbz-state-put 'coord_mode 'world))
-    ((= (atoi (get_tile "coord_mode")) 2) (zbbz-state-put 'coord_mode 'custom))
+    ((= (get_tile "coord_mode_world") "1") (zbbz-state-put 'coord_mode 'world))
+    ((= (get_tile "coord_mode_custom") "1") (zbbz-state-put 'coord_mode 'custom))
     (T (zbbz-state-put 'coord_mode 'current))))
 
 (defun zbbz-dialog-save ()
@@ -149,12 +143,17 @@
   (zbbz-dialog-populate))
 
 (defun zbbz-dialog-bind-actions ()
-  (action_tile "coord_mode" "(zbbz-dialog-save-coord-mode) (zbbz-dialog-update-custom-input-state)")
+  (action_tile "coord_mode_current" "(zbbz-state-put 'coord_mode 'current) (zbbz-dialog-update-custom-input-state)")
+  (action_tile "coord_mode_world" "(zbbz-state-put 'coord_mode 'world) (zbbz-dialog-update-custom-input-state)")
+  (action_tile "coord_mode_custom" "(zbbz-state-put 'coord_mode 'custom) (zbbz-dialog-update-custom-input-state)")
   (action_tile "swap_xy" "(zbbz-state-put 'swap_xy (= $value \"1\")) (zbbz-dialog-sync-preview)")
   (action_tile "group_on" "(zbbz-state-put 'group_on (= $value \"1\"))")
   (action_tile "auto_orient" "(zbbz-state-put 'auto_orient (= $value \"1\"))")
   (action_tile "background_mask" "(zbbz-state-put 'background_mask (= $value \"1\"))")
-  (action_tile "prefix_mode" "(zbbz-dialog-save-prefix-mode) (zbbz-dialog-sync-preview)")
+  (action_tile "prefix_xy" "(zbbz-state-put 'prefix_mode 'xy) (zbbz-dialog-sync-preview)")
+  (action_tile "prefix_ab" "(zbbz-state-put 'prefix_mode 'ab) (zbbz-dialog-sync-preview)")
+  (action_tile "prefix_ne" "(zbbz-state-put 'prefix_mode 'ne) (zbbz-dialog-sync-preview)")
+  (action_tile "prefix_none" "(zbbz-state-put 'prefix_mode 'none) (zbbz-dialog-sync-preview)")
   (action_tile "apply_base_angle" "(zbbz-dialog-handle-apply-base-angle)")
   (action_tile "pick_two_points" "(zbbz-dialog-request-action 'pick_two_points)")
   (action_tile "draw_grid" "(zbbz-dialog-request-action 'draw_grid)")
