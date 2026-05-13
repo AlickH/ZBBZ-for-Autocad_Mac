@@ -2,6 +2,36 @@
   (if value "1" "0"))
 
 (setq *zbbz-dialog-initializing* nil)
+(setq *zbbz-dialog-settings* nil)
+
+(defun zbbz-dialog-begin-session ()
+  (setq *zbbz-dialog-settings* (zbbz-state-ensure)))
+
+(defun zbbz-dialog-end-session ()
+  (setq *zbbz-dialog-settings* nil))
+
+(defun zbbz-dialog-get (key / pair)
+  (zbbz-state-assoc-value key (if *zbbz-dialog-settings* *zbbz-dialog-settings* (zbbz-state-ensure))))
+
+(defun zbbz-dialog-put (key value / pair)
+  (if (zbbz-state-boolean-key-p key)
+    (setq value (if (zbbz-state-truthy-p value) T nil)))
+  (if (null *zbbz-dialog-settings*)
+    (zbbz-dialog-begin-session))
+  (setq pair (assoc key *zbbz-dialog-settings*))
+  (if pair
+    (setq *zbbz-dialog-settings* (subst (cons key value) pair *zbbz-dialog-settings*))
+    (setq *zbbz-dialog-settings* (append *zbbz-dialog-settings* (list (cons key value)))))
+  *zbbz-dialog-settings*)
+
+(defun zbbz-dialog-put-many (pairs / pair)
+  (foreach pair pairs
+    (zbbz-dialog-put (car pair) (cdr pair)))
+  *zbbz-dialog-settings*)
+
+(defun zbbz-dialog-commit-session ()
+  (if *zbbz-dialog-settings*
+    (zbbz-state-put-many *zbbz-dialog-settings*)))
 
 (defun zbbz-dialog-lispsys ()
   (getvar "LISPSYS"))
@@ -24,7 +54,7 @@
     (if (getenv "APPLELOCALE") (strcase (getenv "APPLELOCALE")) "")))
 
 (defun zbbz-dialog-language-setting ()
-  (zbbz-state-get 'dialog_language))
+  (zbbz-dialog-get 'dialog_language))
 
 (defun zbbz-dialog-preferences-dir ()
   (strcat (getenv "HOME") "/Library/Preferences"))
@@ -480,23 +510,23 @@
 
 (defun zbbz-dialog-precision-index ()
   (cond
-    ((= (zbbz-state-get 'precision) 2) "1")
-    ((= (zbbz-state-get 'precision) 1) "2")
-    ((= (zbbz-state-get 'precision) 0) "3")
-    ((= (zbbz-state-get 'precision) 4) "4")
+    ((= (zbbz-dialog-get 'precision) 2) "1")
+    ((= (zbbz-dialog-get 'precision) 1) "2")
+    ((= (zbbz-dialog-get 'precision) 0) "3")
+    ((= (zbbz-dialog-get 'precision) 4) "4")
     (T "0")))
 
 (defun zbbz-dialog-coord-mode-key ()
   (cond
-    ((eq (zbbz-state-get 'coord_mode) 'world) "coord_world")
-    ((eq (zbbz-state-get 'coord_mode) 'custom) "coord_custom")
+    ((eq (zbbz-dialog-get 'coord_mode) 'world) "coord_world")
+    ((eq (zbbz-dialog-get 'coord_mode) 'custom) "coord_custom")
     (T "coord_current")))
 
 (defun zbbz-dialog-prefix-mode-key ()
   (cond
-    ((eq (zbbz-state-get 'prefix_mode) 'ab) "prefix_ab")
-    ((eq (zbbz-state-get 'prefix_mode) 'ne) "prefix_ne")
-    ((eq (zbbz-state-get 'prefix_mode) 'none) "prefix_none")
+    ((eq (zbbz-dialog-get 'prefix_mode) 'ab) "prefix_ab")
+    ((eq (zbbz-dialog-get 'prefix_mode) 'ne) "prefix_ne")
+    ((eq (zbbz-dialog-get 'prefix_mode) 'none) "prefix_none")
     (T "prefix_xy")))
 
 (defun zbbz-dialog-runtime-line (line / dim_layer text_style runtime_line)
@@ -504,57 +534,57 @@
     ((equal line "      : radio_column { key = \"coord_mode\"; value = \"coord_current\";")
       (setq runtime_line (strcat "      : radio_column { key = \"coord_mode\"; value = \"" (zbbz-dialog-coord-mode-key) "\";")))
     ((equal line "        : radio_button { key = \"coord_current\"; label = \"Current Coordinate System\"; value = \"1\"; }")
-      (setq runtime_line (strcat "        : radio_button { key = \"coord_current\"; label = \"Current Coordinate System\"; value = \"" (if (eq (zbbz-state-get 'coord_mode) 'current) "1" "0") "\"; }")))
+      (setq runtime_line (strcat "        : radio_button { key = \"coord_current\"; label = \"Current Coordinate System\"; value = \"" (if (eq (zbbz-dialog-get 'coord_mode) 'current) "1" "0") "\"; }")))
     ((equal line "        : radio_button { key = \"coord_world\"; label = \"World Coordinate System\"; value = \"0\"; }")
-      (setq runtime_line (strcat "        : radio_button { key = \"coord_world\"; label = \"World Coordinate System\"; value = \"" (if (eq (zbbz-state-get 'coord_mode) 'world) "1" "0") "\"; }")))
+      (setq runtime_line (strcat "        : radio_button { key = \"coord_world\"; label = \"World Coordinate System\"; value = \"" (if (eq (zbbz-dialog-get 'coord_mode) 'world) "1" "0") "\"; }")))
     ((equal line "        : radio_button { key = \"coord_custom\"; label = \"Custom Coordinate System\"; value = \"0\"; }")
-      (setq runtime_line (strcat "        : radio_button { key = \"coord_custom\"; label = \"Custom Coordinate System\"; value = \"" (if (eq (zbbz-state-get 'coord_mode) 'custom) "1" "0") "\"; }")))
+      (setq runtime_line (strcat "        : radio_button { key = \"coord_custom\"; label = \"Custom Coordinate System\"; value = \"" (if (eq (zbbz-dialog-get 'coord_mode) 'custom) "1" "0") "\"; }")))
     ((equal line "      : edit_box { key = \"base_n\"; label = \"Base N\"; edit_width = 18; value = \"0.000000\"; }")
-      (setq runtime_line (strcat "      : edit_box { key = \"base_n\"; label = \"Base N\"; edit_width = 18; value = \"" (zbbz-format-number (zbbz-state-get 'base_n) 6) "\"; }")))
+      (setq runtime_line (strcat "      : edit_box { key = \"base_n\"; label = \"Base N\"; edit_width = 18; value = \"" (zbbz-format-number (zbbz-dialog-get 'base_n) 6) "\"; }")))
     ((equal line "      : edit_box { key = \"base_e\"; label = \"Base E\"; edit_width = 18; value = \"0.000000\"; }")
-      (setq runtime_line (strcat "      : edit_box { key = \"base_e\"; label = \"Base E\"; edit_width = 18; value = \"" (zbbz-format-number (zbbz-state-get 'base_e) 6) "\"; }")))
+      (setq runtime_line (strcat "      : edit_box { key = \"base_e\"; label = \"Base E\"; edit_width = 18; value = \"" (zbbz-format-number (zbbz-dialog-get 'base_e) 6) "\"; }")))
     ((equal line "      : edit_box { key = \"rotation\"; label = \"Rotation\"; edit_width = 18; value = \"0.000000\"; }")
-      (setq runtime_line (strcat "      : edit_box { key = \"rotation\"; label = \"Rotation\"; edit_width = 18; value = \"" (zbbz-format-number (zbbz-state-get 'rotation) 6) "\"; }")))
+      (setq runtime_line (strcat "      : edit_box { key = \"rotation\"; label = \"Rotation\"; edit_width = 18; value = \"" (zbbz-format-number (zbbz-dialog-get 'rotation) 6) "\"; }")))
     ((equal line "        : toggle { key = \"swap_xy\"; label = \"Swap X/Y\"; value = \"0\"; }")
-      (setq runtime_line (strcat "        : toggle { key = \"swap_xy\"; label = \"Swap X/Y\"; value = \"" (zbbz-dialog-bool-to-tile (zbbz-state-get 'swap_xy)) "\"; }")))
+      (setq runtime_line (strcat "        : toggle { key = \"swap_xy\"; label = \"Swap X/Y\"; value = \"" (zbbz-dialog-bool-to-tile (zbbz-dialog-get 'swap_xy)) "\"; }")))
     ((equal line "        : toggle { key = \"group_on\"; label = \"Group On\"; value = \"0\"; }")
-      (setq runtime_line (strcat "        : toggle { key = \"group_on\"; label = \"Group On\"; value = \"" (zbbz-dialog-bool-to-tile (zbbz-state-get 'group_on)) "\"; }")))
+      (setq runtime_line (strcat "        : toggle { key = \"group_on\"; label = \"Group On\"; value = \"" (zbbz-dialog-bool-to-tile (zbbz-dialog-get 'group_on)) "\"; }")))
     ((equal line "        : toggle { key = \"auto_orient\"; label = \"Auto Orient\"; value = \"0\"; }")
-      (setq runtime_line (strcat "        : toggle { key = \"auto_orient\"; label = \"Auto Orient\"; value = \"" (zbbz-dialog-bool-to-tile (zbbz-state-get 'auto_orient)) "\"; }")))
+      (setq runtime_line (strcat "        : toggle { key = \"auto_orient\"; label = \"Auto Orient\"; value = \"" (zbbz-dialog-bool-to-tile (zbbz-dialog-get 'auto_orient)) "\"; }")))
     ((equal line "        : radio_row { key = \"prefix_mode\"; value = \"prefix_xy\";")
       (setq runtime_line (strcat "        : radio_row { key = \"prefix_mode\"; value = \"" (zbbz-dialog-prefix-mode-key) "\";")))
     ((equal line "          : radio_button { key = \"prefix_xy\"; label = \"XY\"; value = \"1\"; }")
-      (setq runtime_line (strcat "          : radio_button { key = \"prefix_xy\"; label = \"XY\"; value = \"" (if (eq (zbbz-state-get 'prefix_mode) 'xy) "1" "0") "\"; }")))
+      (setq runtime_line (strcat "          : radio_button { key = \"prefix_xy\"; label = \"XY\"; value = \"" (if (eq (zbbz-dialog-get 'prefix_mode) 'xy) "1" "0") "\"; }")))
     ((equal line "          : radio_button { key = \"prefix_ab\"; label = \"AB\"; value = \"0\"; }")
-      (setq runtime_line (strcat "          : radio_button { key = \"prefix_ab\"; label = \"AB\"; value = \"" (if (eq (zbbz-state-get 'prefix_mode) 'ab) "1" "0") "\"; }")))
+      (setq runtime_line (strcat "          : radio_button { key = \"prefix_ab\"; label = \"AB\"; value = \"" (if (eq (zbbz-dialog-get 'prefix_mode) 'ab) "1" "0") "\"; }")))
     ((equal line "          : radio_button { key = \"prefix_ne\"; label = \"NE\"; value = \"0\"; }")
-      (setq runtime_line (strcat "          : radio_button { key = \"prefix_ne\"; label = \"NE\"; value = \"" (if (eq (zbbz-state-get 'prefix_mode) 'ne) "1" "0") "\"; }")))
+      (setq runtime_line (strcat "          : radio_button { key = \"prefix_ne\"; label = \"NE\"; value = \"" (if (eq (zbbz-dialog-get 'prefix_mode) 'ne) "1" "0") "\"; }")))
     ((equal line "          : radio_button { key = \"prefix_none\"; label = \"None\"; value = \"0\"; }")
-      (setq runtime_line (strcat "          : radio_button { key = \"prefix_none\"; label = \"None\"; value = \"" (if (eq (zbbz-state-get 'prefix_mode) 'none) "1" "0") "\"; }")))
+      (setq runtime_line (strcat "          : radio_button { key = \"prefix_none\"; label = \"None\"; value = \"" (if (eq (zbbz-dialog-get 'prefix_mode) 'none) "1" "0") "\"; }")))
     ((equal line "      : popup_list { key = \"dim_layer\"; label = \"Annotation Layer\"; list = \"*CURRENT*\\n0\"; value = \"0\"; }")
       (progn
-        (setq dim_layer (zbbz-state-get 'dim_layer))
+        (setq dim_layer (zbbz-dialog-get 'dim_layer))
         (setq runtime_line (strcat "      : popup_list { key = \"dim_layer\"; label = \"Annotation Layer\"; list = \"*CURRENT*\\n0\"; value = \"" (if (equal dim_layer "0") "1" "0") "\"; }"))))
     ((equal line "      : popup_list { key = \"arrow_style\"; label = \"Arrow Style\"; list = \"triangle\\nnone\"; value = \"0\"; }")
-      (setq runtime_line (strcat "      : popup_list { key = \"arrow_style\"; label = \"Arrow Style\"; list = \"triangle\\nnone\"; value = \"" (if (equal (zbbz-state-get 'arrow_style) "none") "1" "0") "\"; }")))
+      (setq runtime_line (strcat "      : popup_list { key = \"arrow_style\"; label = \"Arrow Style\"; list = \"triangle\\nnone\"; value = \"" (if (equal (zbbz-dialog-get 'arrow_style) "none") "1" "0") "\"; }")))
     ((equal line "      : edit_box { key = \"arrow_size\"; label = \"Arrow Size\"; edit_width = 12; value = \"2.500000\"; }")
-      (setq runtime_line (strcat "      : edit_box { key = \"arrow_size\"; label = \"Arrow Size\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-state-get 'arrow_size) 6) "\"; }")))
+      (setq runtime_line (strcat "      : edit_box { key = \"arrow_size\"; label = \"Arrow Size\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-dialog-get 'arrow_size) 6) "\"; }")))
     ((equal line "      : popup_list { key = \"text_style\"; label = \"Text Style\"; list = \"*CURRENT*\\nStandard\"; value = \"0\"; }")
       (progn
-        (setq text_style (zbbz-state-get 'text_style))
+        (setq text_style (zbbz-dialog-get 'text_style))
         (setq runtime_line (strcat "      : popup_list { key = \"text_style\"; label = \"Text Style\"; list = \"*CURRENT*\\nStandard\"; value = \"" (if (equal text_style "Standard") "1" "0") "\"; }"))))
     ((equal line "      : popup_list { key = \"precision\"; label = \"Precision\"; list = \"0.000\\n0.00\\n0.0\\n0\\n0.0000\"; value = \"0\"; }")
       (setq runtime_line (strcat "      : popup_list { key = \"precision\"; label = \"Precision\"; list = \"0.000\\n0.00\\n0.0\\n0\\n0.0000\"; value = \"" (zbbz-dialog-precision-index) "\"; }")))
     ((equal line "      : popup_list { key = \"dialog_language\"; label = \"Dialog Language\"; list = \"Follow AutoCAD\\nEnglish\\nChinese, Simplified\\nFrench\\nGerman\\nItalian\\nJapanese\\nKorean\\nSpanish\"; value = \"0\"; }")
       (setq runtime_line (strcat "      : popup_list { key = \"dialog_language\"; label = \"Dialog Language\"; list = \"" (zbbz-dialog-language-list-string) "\"; value = \"" (zbbz-dialog-language-index) "\"; }")))
     ((equal line "        : edit_box { key = \"bearing_angle\"; label = \"Bearing\"; edit_width = 12; value = \"0.000000\"; }")
-      (setq runtime_line (strcat "        : edit_box { key = \"bearing_angle\"; label = \"Bearing\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-state-get 'bearing_angle) 6) "\"; }")))
+      (setq runtime_line (strcat "        : edit_box { key = \"bearing_angle\"; label = \"Bearing\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-dialog-get 'bearing_angle) 6) "\"; }")))
     ((equal line "      : edit_box { key = \"dim_scale\"; label = \"Annotation Scale\"; edit_width = 12; value = \"1.000000\"; }")
-      (setq runtime_line (strcat "      : edit_box { key = \"dim_scale\"; label = \"Annotation Scale\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-state-get 'dim_scale) 6) "\"; }")))
+      (setq runtime_line (strcat "      : edit_box { key = \"dim_scale\"; label = \"Annotation Scale\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-dialog-get 'dim_scale) 6) "\"; }")))
     ((equal line "      : edit_box { key = \"text_height\"; label = \"Text Height\"; edit_width = 12; value = \"2.500000\"; }")
-      (setq runtime_line (strcat "      : edit_box { key = \"text_height\"; label = \"Text Height\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-state-get 'text_height) 6) "\"; }")))
+      (setq runtime_line (strcat "      : edit_box { key = \"text_height\"; label = \"Text Height\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-dialog-get 'text_height) 6) "\"; }")))
     ((equal line "      : toggle { key = \"background_mask\"; label = \"Background Mask\"; value = \"0\"; }")
-      (setq runtime_line (strcat "      : toggle { key = \"background_mask\"; label = \"Background Mask\"; value = \"" (zbbz-dialog-bool-to-tile (zbbz-state-get 'background_mask)) "\"; }")))
+      (setq runtime_line (strcat "      : toggle { key = \"background_mask\"; label = \"Background Mask\"; value = \"" (zbbz-dialog-bool-to-tile (zbbz-dialog-get 'background_mask)) "\"; }")))
     (T
       (setq runtime_line line)))
   (zbbz-dialog-localize-line runtime_line))
@@ -579,14 +609,14 @@
     (zbbz-format-output-lines
       0.0
       0.0
-      (zbbz-state-get 'prefix_mode)
-      (zbbz-state-get 'swap_xy)
-      (zbbz-state-get 'precision)))
+      (zbbz-dialog-get 'prefix_mode)
+      (zbbz-dialog-get 'swap_xy)
+      (zbbz-dialog-get 'precision)))
   (set_tile "preview_line_1" (car lines))
   (set_tile "preview_line_2" (cadr lines)))
 
 (defun zbbz-dialog-update-custom-input-state (/ mode disabled_mode enabled_mode)
-  (setq mode (zbbz-state-get 'coord_mode))
+  (setq mode (zbbz-dialog-get 'coord_mode))
   (setq enabled_mode 0)
   (setq disabled_mode 1)
   (mode_tile "base_n" (if (eq mode 'custom) enabled_mode disabled_mode))
@@ -597,14 +627,14 @@
 
 (defun zbbz-dialog-populate ()
   (setq *zbbz-dialog-initializing* T)
-  (set_tile "base_n" (zbbz-format-number (zbbz-state-get 'base_n) 6))
-  (set_tile "base_e" (zbbz-format-number (zbbz-state-get 'base_e) 6))
-  (set_tile "rotation" (zbbz-format-number (zbbz-state-get 'rotation) 6))
-  (set_tile "arrow_size" (zbbz-format-number (zbbz-state-get 'arrow_size) 6))
-  (set_tile "bearing_angle" (zbbz-format-number (zbbz-state-get 'bearing_angle) 6))
-  (set_tile "dim_scale" (zbbz-format-number (zbbz-state-get 'dim_scale) 6))
-  (set_tile "text_height" (zbbz-format-number (zbbz-state-get 'text_height) 6))
-  (set_tile "background_mask" (zbbz-dialog-bool-to-tile (zbbz-state-get 'background_mask)))
+  (set_tile "base_n" (zbbz-format-number (zbbz-dialog-get 'base_n) 6))
+  (set_tile "base_e" (zbbz-format-number (zbbz-dialog-get 'base_e) 6))
+  (set_tile "rotation" (zbbz-format-number (zbbz-dialog-get 'rotation) 6))
+  (set_tile "arrow_size" (zbbz-format-number (zbbz-dialog-get 'arrow_size) 6))
+  (set_tile "bearing_angle" (zbbz-format-number (zbbz-dialog-get 'bearing_angle) 6))
+  (set_tile "dim_scale" (zbbz-format-number (zbbz-dialog-get 'dim_scale) 6))
+  (set_tile "text_height" (zbbz-format-number (zbbz-dialog-get 'text_height) 6))
+  (set_tile "background_mask" (zbbz-dialog-bool-to-tile (zbbz-dialog-get 'background_mask)))
   (set_tile "dialog_language" (zbbz-dialog-language-index))
   (zbbz-dialog-update-custom-input-state)
   (zbbz-dialog-sync-preview)
@@ -613,7 +643,7 @@
 (defun zbbz-dialog-save-edit-number (tile key / value)
   (setq value (distof (get_tile tile) 2))
   (if value
-    (zbbz-state-put key value)))
+    (zbbz-dialog-put key value)))
 
 (defun zbbz-dialog-edit-number-pair (tile key / value)
   (setq value (distof (get_tile tile) 2))
@@ -622,30 +652,30 @@
     nil))
 
 (defun zbbz-dialog-save-behavior-toggles ()
-  (zbbz-state-put 'swap_xy (equal (get_tile "swap_xy") "1"))
-  (zbbz-state-put 'group_on (equal (get_tile "group_on") "1"))
-  (zbbz-state-put 'auto_orient (equal (get_tile "auto_orient") "1")))
+  (zbbz-dialog-put 'swap_xy (equal (get_tile "swap_xy") "1"))
+  (zbbz-dialog-put 'group_on (equal (get_tile "group_on") "1"))
+  (zbbz-dialog-put 'auto_orient (equal (get_tile "auto_orient") "1")))
 
 (defun zbbz-dialog-save-style-popups ()
-  (zbbz-state-put 'dim_layer
+  (zbbz-dialog-put 'dim_layer
     (if (= (atoi (get_tile "dim_layer")) 1) "0" ""))
-  (zbbz-state-put 'arrow_style
+  (zbbz-dialog-put 'arrow_style
     (if (= (atoi (get_tile "arrow_style")) 1) "none" "triangle"))
-  (zbbz-state-put 'text_style
+  (zbbz-dialog-put 'text_style
     (if (= (atoi (get_tile "text_style")) 1) "Standard" ""))
-  (zbbz-state-put 'dialog_language
+  (zbbz-dialog-put 'dialog_language
     (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
 
 (defun zbbz-dialog-save-dim-layer ()
-  (zbbz-state-put 'dim_layer
+  (zbbz-dialog-put 'dim_layer
     (if (= (atoi (get_tile "dim_layer")) 1) "0" "")))
 
 (defun zbbz-dialog-save-arrow-style ()
-  (zbbz-state-put 'arrow_style
+  (zbbz-dialog-put 'arrow_style
     (if (= (atoi (get_tile "arrow_style")) 1) "none" "triangle")))
 
 (defun zbbz-dialog-save-text-style ()
-  (zbbz-state-put 'text_style
+  (zbbz-dialog-put 'text_style
     (if (= (atoi (get_tile "text_style")) 1) "Standard" "")))
 
 (defun zbbz-dialog-precision-value (/ precision_index)
@@ -659,10 +689,10 @@
     (T 3)))
 
 (defun zbbz-dialog-save-precision ()
-  (zbbz-state-put 'precision (zbbz-dialog-precision-value)))
+  (zbbz-dialog-put 'precision (zbbz-dialog-precision-value)))
 
 (defun zbbz-dialog-save-language ()
-  (zbbz-state-put 'dialog_language
+  (zbbz-dialog-put 'dialog_language
     (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
 
 (defun zbbz-dialog-coord-mode-value ()
@@ -673,10 +703,10 @@
 
 (defun zbbz-dialog-save-prefix-mode ()
   (cond
-    ((equal (get_tile "prefix_mode") "prefix_ab") (zbbz-state-put 'prefix_mode 'ab))
-    ((equal (get_tile "prefix_mode") "prefix_ne") (zbbz-state-put 'prefix_mode 'ne))
-    ((equal (get_tile "prefix_mode") "prefix_none") (zbbz-state-put 'prefix_mode 'none))
-    (T (zbbz-state-put 'prefix_mode 'xy))))
+    ((equal (get_tile "prefix_mode") "prefix_ab") (zbbz-dialog-put 'prefix_mode 'ab))
+    ((equal (get_tile "prefix_mode") "prefix_ne") (zbbz-dialog-put 'prefix_mode 'ne))
+    ((equal (get_tile "prefix_mode") "prefix_none") (zbbz-dialog-put 'prefix_mode 'none))
+    (T (zbbz-dialog-put 'prefix_mode 'xy))))
 
 (defun zbbz-dialog-prefix-mode-value ()
   (cond
@@ -686,7 +716,7 @@
     (T 'xy)))
 
 (defun zbbz-dialog-save-coord-mode ()
-  (zbbz-state-put 'coord_mode (zbbz-dialog-coord-mode-value)))
+  (zbbz-dialog-put 'coord_mode (zbbz-dialog-coord-mode-value)))
 
 (defun zbbz-dialog-save (/ pairs)
   (if (not *zbbz-dialog-initializing*)
@@ -712,7 +742,8 @@
           (zbbz-dialog-edit-number-pair "bearing_angle" 'bearing_angle)
           (zbbz-dialog-edit-number-pair "dim_scale" 'dim_scale)
           (zbbz-dialog-edit-number-pair "text_height" 'text_height)))
-      (zbbz-state-put-many pairs))))
+      (foreach pair pairs
+        (zbbz-dialog-put (car pair) (cdr pair))))))
 
 (defun zbbz-dialog-request-action (action_code)
   (setq *zbbz-dialog-action* action_code)
@@ -724,7 +755,12 @@
   (setq rotation (distof (get_tile "rotation") 2))
   (if (and base_n base_e rotation)
     (progn
-      (zbbz-state-apply-base-angle base_n base_e rotation)
+      (zbbz-dialog-put-many
+        (list
+          (cons 'coord_mode 'custom)
+          (cons 'base_n base_n)
+          (cons 'base_e base_e)
+          (cons 'rotation rotation)))
       (zbbz-dialog-populate))))
 
 (defun zbbz-dialog-bind-actions ()
@@ -735,14 +771,14 @@
   (action_tile "swap_xy" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-behavior-toggles) (zbbz-dialog-sync-preview)))")
   (action_tile "group_on" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-behavior-toggles))")
   (action_tile "auto_orient" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-behavior-toggles))")
-  (action_tile "background_mask" "(if (not *zbbz-dialog-initializing*) (zbbz-state-put 'background_mask (equal $value \"1\")))")
+  (action_tile "background_mask" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-put 'background_mask (equal $value \"1\")))")
   (action_tile "prefix_mode" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-prefix-mode) (zbbz-dialog-sync-preview)))")
   (action_tile "dim_layer" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-dim-layer))")
   (action_tile "arrow_style" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-arrow-style))")
   (action_tile "arrow_size" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"arrow_size\" 'arrow_size))")
   (action_tile "text_style" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-text-style))")
   (action_tile "precision" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-precision) (zbbz-dialog-sync-preview)))")
-  (action_tile "dialog_language" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-request-action 'refresh_language))")
+  (action_tile "dialog_language" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-language) (zbbz-dialog-request-action 'refresh_language)))")
   (action_tile "bearing_angle" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"bearing_angle\" 'bearing_angle))")
   (action_tile "dim_scale" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"dim_scale\" 'dim_scale))")
   (action_tile "text_height" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"text_height\" 'text_height))")
@@ -777,44 +813,61 @@
               (zbbz-dialog-populate)
               (zbbz-dialog-bind-actions)
               (setq result (start_dialog))))
-          (if (/= result 0)
-            (zbbz-dialog-save))
           (unload_dialog dialog_id)
           (list result *zbbz-dialog-action*))))))
 
 (defun zbbz-dialog-open-loop (/ dialog_result dialog_code action_value bearing_angle calibration)
+  (zbbz-dialog-begin-session)
   (setq action_value 'accept)
   (while action_value
+    (if (null *zbbz-dialog-settings*)
+      (zbbz-dialog-begin-session))
     (setq dialog_result (zbbz-dialog-run-once))
     (if (null dialog_result)
-      (setq action_value nil)
+      (progn
+        (zbbz-dialog-end-session)
+        (setq action_value nil))
       (progn
         (setq dialog_code (car dialog_result))
         (setq action_value (cadr dialog_result))
         (cond
           ((= dialog_code 0)
+            (zbbz-dialog-end-session)
             (setq action_value nil)
             nil)
           ((= dialog_code 1)
+            (zbbz-dialog-commit-session)
+            (zbbz-dialog-end-session)
             (setq action_value nil)
             T)
           ((eq action_value 'pick_bearing)
+            (zbbz-dialog-commit-session)
             (setq bearing_angle (zbbz-pick-bearing-angle))
             (if bearing_angle
-              (zbbz-state-put 'bearing_angle bearing_angle)))
+              (zbbz-state-put 'bearing_angle bearing_angle))
+            (zbbz-dialog-end-session))
           ((eq action_value 'pick_two_points)
+            (zbbz-dialog-commit-session)
+            (zbbz-dialog-end-session)
             (setq calibration (zbbz-pick-two-point-calibration))
             (if calibration
               (zbbz-pick-apply-calibration calibration)))
           ((eq action_value 'refresh_language)
             T)
           ((eq action_value 'draw_grid)
+            (zbbz-dialog-commit-session)
+            (zbbz-dialog-end-session)
             (zbbz-grid-draw))
           ((eq action_value 'export_dat)
+            (zbbz-dialog-commit-session)
+            (zbbz-dialog-end-session)
             (zbbz-dat-export-session))
           ((eq action_value 'help)
+            (zbbz-dialog-commit-session)
+            (zbbz-dialog-end-session)
             (zbbz-help-show))
           (T
+            (zbbz-dialog-end-session)
             (setq action_value nil)
             nil))))))
 (setq *zbbz-dialog-action* 'accept)
