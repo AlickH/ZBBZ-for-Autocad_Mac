@@ -40,3 +40,12 @@
 - [ ] `Draw Coordinate Grid` shows the current unimplemented message.
 - [ ] `Pick` beside bearing shows the current unimplemented message.
 - [ ] `Generate DAT File` shows the current unimplemented message.
+
+## Annotation
+
+- [ ] Confirming the dialog starts point selection.
+- [ ] Picking one point and one text location creates a leader line.
+- [ ] Picking one point and one text location creates MTEXT with two coordinate lines.
+- [ ] `swap_xy` changes both line order and labels in created text.
+- [ ] `auto_orient` changes text rotation behavior.
+- [ ] Multiple points can be annotated in one command until Enter exits.

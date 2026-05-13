@@ -7,12 +7,13 @@
   (zbbz-load-module "plugin/zbbz-state.lsp")
   (zbbz-load-module "plugin/zbbz-format.lsp")
   (zbbz-load-module "plugin/zbbz-transform.lsp")
-  (zbbz-load-module "plugin/zbbz-dialog.lsp"))
+  (zbbz-load-module "plugin/zbbz-dialog.lsp")
+  (zbbz-load-module "plugin/zbbz-annotate.lsp"))
 
 (defun c:ZBBZ nil
   (zbbz-load-all)
   (if (zbbz-dialog-open)
-    (prompt "\nZBBZ settings saved. Drawing workflow is not implemented yet.")
+    (zbbz-annotate-run-loop)
     (prompt "\nZBBZ dialog canceled."))
   (princ))
 
