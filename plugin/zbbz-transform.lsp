@@ -26,6 +26,9 @@
 (defun zbbz-transform-angle-deg (p1 p2)
   (* 180.0 (/ (angle p1 p2) pi)))
 
+(defun zbbz-transform-bearing-from-points (p1 p2)
+  (zbbz-transform-normalize-angle (zbbz-transform-angle-deg p1 p2)))
+
 (defun zbbz-transform-normalize-angle (degrees)
   (while (< degrees 0.0)
     (setq degrees (+ degrees 360.0)))

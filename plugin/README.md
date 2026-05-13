@@ -22,6 +22,8 @@ Mac-native rebuild of the evidenced coordinate annotation feature set from the W
   - main `SetDimZB` dialog definition
 - `plugin/zbbz-dialog.lsp`
   - dialog tile population and action binding
+- `plugin/zbbz-pick.lsp`
+  - bearing pick and two-point calibration prompts
 - `plugin/zbbz-annotate.lsp`
   - point selection, text assembly, leader creation, and annotation session records
 
@@ -38,4 +40,4 @@ Mac-native rebuild of the evidenced coordinate annotation feature set from the W
 
 ## Status
 
-Current status includes project skeleton, settings state, output formatting, base coordinate transform math, the main settings dialog shell, and the first annotation workflow. Grid drawing, DAT export, help, and interactive pick actions are not implemented yet.
+Current status includes project skeleton, settings state, output formatting, base coordinate transform math, the main settings dialog shell, the first annotation workflow, bearing pick, and two-point calibration prompts. Grid drawing, DAT export, and help are not implemented yet.

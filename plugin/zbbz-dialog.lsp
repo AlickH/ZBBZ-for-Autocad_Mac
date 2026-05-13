@@ -115,6 +115,11 @@
   (zbbz-state-put 'precision (atoi (get_tile "precision")))
   (zbbz-dialog-save-prefix-mode))
 
+(defun zbbz-dialog-request-action (action_code)
+  (zbbz-dialog-save)
+  (setq *zbbz-dialog-action* action_code)
+  (done_dialog 2))
+
 (defun zbbz-dialog-handle-apply-base-angle nil
   (zbbz-dialog-save)
   (zbbz-state-apply-base-angle
@@ -122,9 +127,6 @@
     (zbbz-state-get 'base_e)
     (zbbz-state-get 'rotation))
   (zbbz-dialog-populate))
-
-(defun zbbz-dialog-handle-unimplemented (message)
-  (alert message))
 
 (defun zbbz-dialog-bind-actions nil
   (action_tile "coord_mode_current" "(zbbz-state-put 'coord_mode 'current) (zbbz-dialog-update-custom-input-state)")
@@ -139,29 +141,60 @@
   (action_tile "prefix_ne" "(zbbz-state-put 'prefix_mode 'ne) (zbbz-dialog-sync-preview)")
   (action_tile "prefix_none" "(zbbz-state-put 'prefix_mode 'none) (zbbz-dialog-sync-preview)")
   (action_tile "apply_base_angle" "(zbbz-dialog-handle-apply-base-angle)")
-  (action_tile "pick_two_points" "(zbbz-dialog-handle-unimplemented \"Two-point calibration is not implemented yet.\")")
-  (action_tile "draw_grid" "(zbbz-dialog-handle-unimplemented \"Grid drawing is not implemented yet.\")")
-  (action_tile "pick_bearing" "(zbbz-dialog-handle-unimplemented \"Bearing pick is not implemented yet.\")")
-  (action_tile "export_dat" "(zbbz-dialog-handle-unimplemented \"DAT export is not implemented yet.\")")
-  (action_tile "help" "(zbbz-dialog-handle-unimplemented \"Help is not implemented yet.\")")
-  (action_tile "accept" "(zbbz-dialog-save) (done_dialog 1)")
+  (action_tile "pick_two_points" "(zbbz-dialog-request-action 'pick_two_points)")
+  (action_tile "draw_grid" "(zbbz-dialog-request-action 'draw_grid)")
+  (action_tile "pick_bearing" "(zbbz-dialog-request-action 'pick_bearing)")
+  (action_tile "export_dat" "(zbbz-dialog-request-action 'export_dat)")
+  (action_tile "help" "(zbbz-dialog-request-action 'help)")
+  (action_tile "accept" "(setq *zbbz-dialog-action* 'accept) (zbbz-dialog-save) (done_dialog 1)")
   (action_tile "cancel" "(done_dialog 0)"))
 
-(defun zbbz-dialog-open (/ dialog_id result)
+(defun zbbz-dialog-run-once (/ dialog_id result)
   (setq dialog_id (load_dialog "plugin/zbbz.dcl"))
   (if (< dialog_id 0)
-    (progn
-      (prompt "\nUnable to load plugin/zbbz.dcl.")
-      nil)
+    nil
     (progn
       (if (not (new_dialog "SetDimZB" dialog_id))
+        (setq result 0)
         (progn
-          (unload_dialog dialog_id)
-          (prompt "\nUnable to open SetDimZB dialog.")
-          nil)
-        (progn
+          (setq *zbbz-dialog-action* 'accept)
           (zbbz-dialog-populate)
           (zbbz-dialog-bind-actions)
-          (setq result (start_dialog))
-          (unload_dialog dialog_id)
-          (= result 1))))))
+          (setq result (start_dialog))))
+      (unload_dialog dialog_id)
+      (list result *zbbz-dialog-action*))))
+
+(defun zbbz-dialog-open-loop (/ dialog_result dialog_code action_value bearing_angle calibration)
+  (setq action_value 'accept)
+  (while action_value
+    (setq dialog_result (zbbz-dialog-run-once))
+    (if (null dialog_result)
+      (setq action_value nil)
+      (progn
+        (setq dialog_code (car dialog_result))
+        (setq action_value (cadr dialog_result))
+        (cond
+          ((= dialog_code 0)
+            (setq action_value nil)
+            nil)
+          ((= dialog_code 1)
+            (setq action_value nil)
+            T)
+          ((eq action_value 'pick_bearing)
+            (setq bearing_angle (zbbz-pick-bearing-angle))
+            (if bearing_angle
+              (zbbz-state-put 'bearing_angle bearing_angle)))
+          ((eq action_value 'pick_two_points)
+            (setq calibration (zbbz-pick-two-point-calibration))
+            (if calibration
+              (zbbz-pick-apply-calibration calibration)))
+          ((eq action_value 'draw_grid)
+            (alert "Grid drawing is not implemented yet."))
+          ((eq action_value 'export_dat)
+            (alert "DAT export is not implemented yet."))
+          ((eq action_value 'help)
+            (alert "Help is not implemented yet."))
+          (T
+            (setq action_value nil)
+            nil))))))
+(setq *zbbz-dialog-action* 'accept)

@@ -37,8 +37,9 @@
 - [ ] Prefix radio changes update the preview text.
 - [ ] Applying base point and angle switches the mode to custom.
 - [ ] `Known Two-Point Pick` shows the current unimplemented message.
+- [ ] `Known Two-Point Pick` closes the dialog, runs pick/input prompts, and reopens with updated custom values.
 - [ ] `Draw Coordinate Grid` shows the current unimplemented message.
-- [ ] `Pick` beside bearing shows the current unimplemented message.
+- [ ] `Pick` beside bearing closes the dialog, runs point prompts, and reopens with updated bearing.
 - [ ] `Generate DAT File` shows the current unimplemented message.
 
 ## Annotation
