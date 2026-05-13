@@ -18,6 +18,10 @@ Mac-native rebuild of the evidenced coordinate annotation feature set from the W
   - coordinate text formatting helpers
 - `plugin/zbbz-transform.lsp`
   - coordinate mode transforms, custom coordinate scale, and two-point calibration math
+- `plugin/zbbz.dcl`
+  - main `SetDimZB` dialog definition
+- `plugin/zbbz-dialog.lsp`
+  - dialog tile population and action binding
 
 ## Non-Goals
 
@@ -32,4 +36,4 @@ Mac-native rebuild of the evidenced coordinate annotation feature set from the W
 
 ## Status
 
-Current status includes project skeleton, settings state, output formatting, and base coordinate transform math. Dialog, annotation workflow, grid drawing, and DAT export are not implemented yet.
+Current status includes project skeleton, settings state, output formatting, base coordinate transform math, and the main settings dialog shell. Annotation workflow, grid drawing, DAT export, help, and interactive pick actions are not implemented yet.

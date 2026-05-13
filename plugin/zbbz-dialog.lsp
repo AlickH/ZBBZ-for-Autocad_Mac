@@ -1,0 +1,167 @@
+(defun zbbz-dialog-bool-to-tile (value)
+  (if value "1" "0"))
+
+(defun zbbz-dialog-set-coord-mode-tiles (coord_mode)
+  (set_tile "coord_mode_current" (if (eq coord_mode 'current) "1" "0"))
+  (set_tile "coord_mode_world" (if (eq coord_mode 'world) "1" "0"))
+  (set_tile "coord_mode_custom" (if (eq coord_mode 'custom) "1" "0")))
+
+(defun zbbz-dialog-set-prefix-tiles (prefix_mode)
+  (set_tile "prefix_xy" (if (eq prefix_mode 'xy) "1" "0"))
+  (set_tile "prefix_ab" (if (eq prefix_mode 'ab) "1" "0"))
+  (set_tile "prefix_ne" (if (eq prefix_mode 'ne) "1" "0"))
+  (set_tile "prefix_none" (if (eq prefix_mode 'none) "1" "0")))
+
+(defun zbbz-dialog-set-popup-items (key items / index)
+  (start_list key)
+  (setq index 0)
+  (while (< index (length items))
+    (add_list (nth index items))
+    (setq index (+ index 1)))
+  (end_list))
+
+(defun zbbz-dialog-default-layers nil
+  (list "*CURRENT*" "0"))
+
+(defun zbbz-dialog-default-arrow-styles nil
+  (list "none"))
+
+(defun zbbz-dialog-default-text-styles nil
+  (list "*CURRENT*" "Standard"))
+
+(defun zbbz-dialog-default-precision-items nil
+  (list "0" "0.0" "0.00" "0.000" "0.0000"))
+
+(defun zbbz-dialog-sync-preview (/ lines)
+  (setq lines
+    (zbbz-format-output-lines
+      0.0
+      0.0
+      (zbbz-state-get 'prefix_mode)
+      (zbbz-state-get 'swap_xy)
+      (zbbz-state-get 'precision)))
+  (set_tile "preview_line_1" (car lines))
+  (set_tile "preview_line_2" (cadr lines)))
+
+(defun zbbz-dialog-update-custom-input-state (/ mode disabled_mode enabled_mode)
+  (setq mode (zbbz-state-get 'coord_mode))
+  (setq enabled_mode 0)
+  (setq disabled_mode 1)
+  (mode_tile "base_n" (if (eq mode 'custom) enabled_mode disabled_mode))
+  (mode_tile "base_e" (if (eq mode 'custom) enabled_mode disabled_mode))
+  (mode_tile "rotation" (if (eq mode 'custom) enabled_mode disabled_mode))
+  (mode_tile "apply_base_angle" (if (eq mode 'custom) enabled_mode disabled_mode))
+  (mode_tile "pick_two_points" enabled_mode))
+
+(defun zbbz-dialog-populate nil
+  (zbbz-dialog-set-coord-mode-tiles (zbbz-state-get 'coord_mode))
+  (set_tile "base_n" (zbbz-format-number (zbbz-state-get 'base_n) 6))
+  (set_tile "base_e" (zbbz-format-number (zbbz-state-get 'base_e) 6))
+  (set_tile "rotation" (zbbz-format-number (zbbz-state-get 'rotation) 6))
+  (set_tile "arrow_size" (zbbz-format-number (zbbz-state-get 'arrow_size) 6))
+  (set_tile "bearing_angle" (zbbz-format-number (zbbz-state-get 'bearing_angle) 6))
+  (set_tile "dim_scale" (zbbz-format-number (zbbz-state-get 'dim_scale) 6))
+  (set_tile "text_height" (zbbz-format-number (zbbz-state-get 'text_height) 6))
+  (set_tile "swap_xy" (zbbz-dialog-bool-to-tile (zbbz-state-get 'swap_xy)))
+  (set_tile "group_on" (zbbz-dialog-bool-to-tile (zbbz-state-get 'group_on)))
+  (set_tile "auto_orient" (zbbz-dialog-bool-to-tile (zbbz-state-get 'auto_orient)))
+  (set_tile "background_mask" (zbbz-dialog-bool-to-tile (zbbz-state-get 'background_mask)))
+  (zbbz-dialog-set-prefix-tiles (zbbz-state-get 'prefix_mode))
+  (zbbz-dialog-set-popup-items "dim_layer" (zbbz-dialog-default-layers))
+  (zbbz-dialog-default-select "dim_layer" 0)
+  (zbbz-dialog-set-popup-items "arrow_style" (zbbz-dialog-default-arrow-styles))
+  (zbbz-dialog-default-select "arrow_style" 0)
+  (zbbz-dialog-set-popup-items "text_style" (zbbz-dialog-default-text-styles))
+  (zbbz-dialog-default-select "text_style" 0)
+  (zbbz-dialog-set-popup-items "precision" (zbbz-dialog-default-precision-items))
+  (zbbz-dialog-default-select "precision" (zbbz-state-get 'precision))
+  (zbbz-dialog-update-custom-input-state)
+  (zbbz-dialog-sync-preview))
+
+(defun zbbz-dialog-default-select (key index)
+  (set_tile key (itoa index)))
+
+(defun zbbz-dialog-save-edit-number (tile key / value)
+  (setq value (distof (get_tile tile) 2))
+  (if value
+    (zbbz-state-put key value)))
+
+(defun zbbz-dialog-save-prefix-mode nil
+  (cond
+    ((= (get_tile "prefix_xy") "1") (zbbz-state-put 'prefix_mode 'xy))
+    ((= (get_tile "prefix_ab") "1") (zbbz-state-put 'prefix_mode 'ab))
+    ((= (get_tile "prefix_ne") "1") (zbbz-state-put 'prefix_mode 'ne))
+    (T (zbbz-state-put 'prefix_mode 'none))))
+
+(defun zbbz-dialog-save-coord-mode nil
+  (cond
+    ((= (get_tile "coord_mode_world") "1") (zbbz-state-put 'coord_mode 'world))
+    ((= (get_tile "coord_mode_custom") "1") (zbbz-state-put 'coord_mode 'custom))
+    (T (zbbz-state-put 'coord_mode 'current))))
+
+(defun zbbz-dialog-save nil
+  (zbbz-dialog-save-coord-mode)
+  (zbbz-dialog-save-edit-number "base_n" 'base_n)
+  (zbbz-dialog-save-edit-number "base_e" 'base_e)
+  (zbbz-dialog-save-edit-number "rotation" 'rotation)
+  (zbbz-dialog-save-edit-number "arrow_size" 'arrow_size)
+  (zbbz-dialog-save-edit-number "bearing_angle" 'bearing_angle)
+  (zbbz-dialog-save-edit-number "dim_scale" 'dim_scale)
+  (zbbz-dialog-save-edit-number "text_height" 'text_height)
+  (zbbz-state-put 'swap_xy (= (get_tile "swap_xy") "1"))
+  (zbbz-state-put 'group_on (= (get_tile "group_on") "1"))
+  (zbbz-state-put 'auto_orient (= (get_tile "auto_orient") "1"))
+  (zbbz-state-put 'background_mask (= (get_tile "background_mask") "1"))
+  (zbbz-state-put 'precision (atoi (get_tile "precision")))
+  (zbbz-dialog-save-prefix-mode))
+
+(defun zbbz-dialog-handle-apply-base-angle nil
+  (zbbz-dialog-save)
+  (zbbz-state-apply-base-angle
+    (zbbz-state-get 'base_n)
+    (zbbz-state-get 'base_e)
+    (zbbz-state-get 'rotation))
+  (zbbz-dialog-populate))
+
+(defun zbbz-dialog-handle-unimplemented (message)
+  (alert message))
+
+(defun zbbz-dialog-bind-actions nil
+  (action_tile "coord_mode_current" "(zbbz-state-put 'coord_mode 'current) (zbbz-dialog-update-custom-input-state)")
+  (action_tile "coord_mode_world" "(zbbz-state-put 'coord_mode 'world) (zbbz-dialog-update-custom-input-state)")
+  (action_tile "coord_mode_custom" "(zbbz-state-put 'coord_mode 'custom) (zbbz-dialog-update-custom-input-state)")
+  (action_tile "swap_xy" "(zbbz-state-put 'swap_xy (= $value \"1\")) (zbbz-dialog-sync-preview)")
+  (action_tile "group_on" "(zbbz-state-put 'group_on (= $value \"1\"))")
+  (action_tile "auto_orient" "(zbbz-state-put 'auto_orient (= $value \"1\"))")
+  (action_tile "background_mask" "(zbbz-state-put 'background_mask (= $value \"1\"))")
+  (action_tile "prefix_xy" "(zbbz-state-put 'prefix_mode 'xy) (zbbz-dialog-sync-preview)")
+  (action_tile "prefix_ab" "(zbbz-state-put 'prefix_mode 'ab) (zbbz-dialog-sync-preview)")
+  (action_tile "prefix_ne" "(zbbz-state-put 'prefix_mode 'ne) (zbbz-dialog-sync-preview)")
+  (action_tile "prefix_none" "(zbbz-state-put 'prefix_mode 'none) (zbbz-dialog-sync-preview)")
+  (action_tile "apply_base_angle" "(zbbz-dialog-handle-apply-base-angle)")
+  (action_tile "pick_two_points" "(zbbz-dialog-handle-unimplemented \"Two-point calibration is not implemented yet.\")")
+  (action_tile "draw_grid" "(zbbz-dialog-handle-unimplemented \"Grid drawing is not implemented yet.\")")
+  (action_tile "pick_bearing" "(zbbz-dialog-handle-unimplemented \"Bearing pick is not implemented yet.\")")
+  (action_tile "export_dat" "(zbbz-dialog-handle-unimplemented \"DAT export is not implemented yet.\")")
+  (action_tile "help" "(zbbz-dialog-handle-unimplemented \"Help is not implemented yet.\")")
+  (action_tile "accept" "(zbbz-dialog-save) (done_dialog 1)")
+  (action_tile "cancel" "(done_dialog 0)"))
+
+(defun zbbz-dialog-open (/ dialog_id result)
+  (setq dialog_id (load_dialog "plugin/zbbz.dcl"))
+  (if (< dialog_id 0)
+    (progn
+      (prompt "\nUnable to load plugin/zbbz.dcl.")
+      nil)
+    (progn
+      (if (not (new_dialog "SetDimZB" dialog_id))
+        (progn
+          (unload_dialog dialog_id)
+          (prompt "\nUnable to open SetDimZB dialog.")
+          nil)
+        (progn
+          (zbbz-dialog-populate)
+          (zbbz-dialog-bind-actions)
+          (setq result (start_dialog))
+          (unload_dialog dialog_id)
+          (= result 1))))))

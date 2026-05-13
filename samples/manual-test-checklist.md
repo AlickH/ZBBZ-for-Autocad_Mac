@@ -19,7 +19,7 @@
 ## Load
 
 - [ ] Loading `plugin/zbbz-mac.lsp` succeeds without missing module errors.
-- [ ] Running `ZBBZ` prints the current scaffold status message.
+- [ ] Running `ZBBZ` opens the settings dialog.
 
 ## Transform
 
@@ -28,3 +28,15 @@
 - [ ] Custom mode applies base N/E and rotation to the point.
 - [ ] Custom mode applies `coord_scale` before rotation and base offset.
 - [ ] Two-point calibration returns `rotation`, `calc_scale`, `real_scale`, `coord_scale`, `distance_diff`, `base_n`, and `base_e`.
+
+## Dialog
+
+- [ ] The `SetDimZB` dialog opens from `ZBBZ`.
+- [ ] Default settings populate the dialog fields.
+- [ ] Switching coordinate mode enables custom inputs only in custom mode.
+- [ ] Prefix radio changes update the preview text.
+- [ ] Applying base point and angle switches the mode to custom.
+- [ ] `Known Two-Point Pick` shows the current unimplemented message.
+- [ ] `Draw Coordinate Grid` shows the current unimplemented message.
+- [ ] `Pick` beside bearing shows the current unimplemented message.
+- [ ] `Generate DAT File` shows the current unimplemented message.

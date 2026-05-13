@@ -6,11 +6,14 @@
 (defun zbbz-load-all nil
   (zbbz-load-module "plugin/zbbz-state.lsp")
   (zbbz-load-module "plugin/zbbz-format.lsp")
-  (zbbz-load-module "plugin/zbbz-transform.lsp"))
+  (zbbz-load-module "plugin/zbbz-transform.lsp")
+  (zbbz-load-module "plugin/zbbz-dialog.lsp"))
 
 (defun c:ZBBZ nil
   (zbbz-load-all)
-  (prompt "\nZBBZ for AutoCAD for Mac loaded. Dialog and drawing workflow are not implemented yet.")
+  (if (zbbz-dialog-open)
+    (prompt "\nZBBZ settings saved. Drawing workflow is not implemented yet.")
+    (prompt "\nZBBZ dialog canceled."))
   (princ))
 
 (zbbz-load-all)
