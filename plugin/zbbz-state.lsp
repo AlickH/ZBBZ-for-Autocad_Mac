@@ -13,6 +13,7 @@
     (cons 'precision 3)
     (cons 'bearing_angle 0.0)
     (cons 'dim_scale 1.0)
+    (cons 'coord_scale 1.0)
     (cons 'text_height 2.5)
     (cons 'background_mask T)
     (cons 'swap_xy nil)

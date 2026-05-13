@@ -16,6 +16,8 @@ Mac-native rebuild of the evidenced coordinate annotation feature set from the W
   - settings state defaults and validation helpers
 - `plugin/zbbz-format.lsp`
   - coordinate text formatting helpers
+- `plugin/zbbz-transform.lsp`
+  - coordinate mode transforms, custom coordinate scale, and two-point calibration math
 
 ## Non-Goals
 
@@ -30,4 +32,4 @@ Mac-native rebuild of the evidenced coordinate annotation feature set from the W
 
 ## Status
 
-Current status is project skeleton only. Dialog, annotation workflow, coordinate transforms, grid drawing, and DAT export are not implemented yet.
+Current status includes project skeleton, settings state, output formatting, and base coordinate transform math. Dialog, annotation workflow, grid drawing, and DAT export are not implemented yet.

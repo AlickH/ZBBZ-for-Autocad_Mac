@@ -5,7 +5,8 @@
 
 (defun zbbz-load-all nil
   (zbbz-load-module "plugin/zbbz-state.lsp")
-  (zbbz-load-module "plugin/zbbz-format.lsp"))
+  (zbbz-load-module "plugin/zbbz-format.lsp")
+  (zbbz-load-module "plugin/zbbz-transform.lsp"))
 
 (defun c:ZBBZ nil
   (zbbz-load-all)
