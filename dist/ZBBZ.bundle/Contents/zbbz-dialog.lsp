@@ -85,7 +85,8 @@
     (strcat "LC_MESSAGES=" (if (getenv "LC_MESSAGES") (vl-prin1-to-string (getenv "LC_MESSAGES")) "nil"))
     (strcat "APPLELOCALE=" (if (getenv "APPLELOCALE") (vl-prin1-to-string (getenv "APPLELOCALE")) "nil"))
     (strcat "LANGUAGE_SOURCE=" (vl-prin1-to-string (zbbz-dialog-language-source)))
-    (strcat "LANGUAGE_KEY=" (vl-prin1-to-string (zbbz-dialog-language-key)))))
+    (strcat "LANGUAGE_KEY=" (vl-prin1-to-string (zbbz-dialog-language-key)))
+    (strcat "DCL_LANGUAGE_KEY=" (vl-prin1-to-string (zbbz-dialog-dcl-language-key)))))
 
 (defun zbbz-dialog-print-language-debug ()
   (foreach line (zbbz-dialog-language-debug-lines)
@@ -145,6 +146,12 @@
     "en"
     setting))
 
+(defun zbbz-dialog-dcl-language-key (/ language_key)
+  (setq language_key (zbbz-dialog-language-key))
+  (if (member language_key '("zh" "ja" "ko"))
+    "en"
+    language_key))
+
 (defun zbbz-dialog-language-options (/ ui_language_key)
   (list
     (cons "cad" "Follow AutoCAD")
@@ -178,7 +185,7 @@
   (itoa found_index))
 
 (defun zbbz-dialog-translation-pairs (/ language_key)
-  (setq language_key (zbbz-dialog-language-key))
+  (setq language_key (zbbz-dialog-dcl-language-key))
   (cond
     ((= language_key "zh")
       (list
