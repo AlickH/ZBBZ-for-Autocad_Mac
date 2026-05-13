@@ -1,6 +1,10 @@
 (setq *zbbz-settings* nil)
 (setq *zbbz-settings-initialized* nil)
 
+(defun zbbz-state-config-path ()
+  (zbbz-plugin-path "zbbz-config.lsp")
+)
+
 (defun zbbz-state-defaults ()
   (list
     (cons 'coord_mode 'current)
@@ -22,13 +26,58 @@
     (cons 'auto_orient T)
     (cons 'prefix_mode 'xy)))
 
+(defun zbbz-state-save-config ( / file_handle )
+  (setq file_handle (open (zbbz-state-config-path) "w"))
+  (if file_handle
+    (progn
+      (write-line (vl-prin1-to-string *zbbz-settings*) file_handle)
+      (close file_handle)
+      T)
+    nil
+  )
+)
+
+(defun zbbz-state-load-config ( / file_handle config_line config_value )
+  (setq file_handle (open (zbbz-state-config-path) "r"))
+  (if file_handle
+    (progn
+      (setq config_line (read-line file_handle))
+      (close file_handle)
+      (if config_line
+        (progn
+          (setq config_value (read config_line))
+          (if config_value
+            config_value
+            (zbbz-state-defaults)
+          )
+        )
+        (zbbz-state-defaults)
+      )
+    )
+    nil
+  )
+)
+
 (defun zbbz-state-reset ()
   (setq *zbbz-settings* (zbbz-state-defaults))
-  (setq *zbbz-settings-initialized* T))
+  (setq *zbbz-settings-initialized* T)
+  (zbbz-state-save-config)
+)
 
 (defun zbbz-state-ensure ()
   (if (or (null *zbbz-settings*) (null *zbbz-settings-initialized*))
-    (zbbz-state-reset))
+    (progn
+      (setq loaded_config (zbbz-state-load-config))
+      (if loaded_config
+        (setq *zbbz-settings* loaded_config)
+        (setq *zbbz-settings* (zbbz-state-defaults))
+      )
+      (setq *zbbz-settings-initialized* T)
+      (if (null loaded_config)
+        (zbbz-state-save-config)
+      )
+    )
+  )
   *zbbz-settings*)
 
 (defun zbbz-state-get (key / pair)
@@ -43,6 +92,7 @@
   (if pair
     (setq *zbbz-settings* (subst (cons key value) pair state))
     (setq *zbbz-settings* (append state (list (cons key value)))))
+  (zbbz-state-save-config)
   *zbbz-settings*)
 
 (defun zbbz-state-put-many (pairs)
