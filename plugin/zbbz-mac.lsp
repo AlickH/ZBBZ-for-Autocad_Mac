@@ -1,21 +1,29 @@
-(defun zbbz-load-module (path)
+(setq *zbbz-plugin-root*
+  "/Users/alick/Documents/Codex/2026-05-13/users-alick-downloads-zbbz-vlx-windows/plugin/")
+
+(defun zbbz-plugin-path (name)
+  (strcat *zbbz-plugin-root* name))
+
+(defun zbbz-load-module (name / path)
+  (setq path (zbbz-plugin-path name))
   (if (findfile path)
     (load path)
     (prompt (strcat "\nMissing module: " path))))
 
 (defun zbbz-load-all nil
-  (zbbz-load-module "plugin/zbbz-state.lsp")
-  (zbbz-load-module "plugin/zbbz-format.lsp")
-  (zbbz-load-module "plugin/zbbz-transform.lsp")
-  (zbbz-load-module "plugin/zbbz-pick.lsp")
-  (zbbz-load-module "plugin/zbbz-grid.lsp")
-  (zbbz-load-module "plugin/zbbz-dat.lsp")
-  (zbbz-load-module "plugin/zbbz-help.lsp")
-  (zbbz-load-module "plugin/zbbz-dialog.lsp")
-  (zbbz-load-module "plugin/zbbz-annotate.lsp"))
+  (zbbz-load-module "zbbz-state.lsp")
+  (zbbz-load-module "zbbz-format.lsp")
+  (zbbz-load-module "zbbz-transform.lsp")
+  (zbbz-load-module "zbbz-pick.lsp")
+  (zbbz-load-module "zbbz-grid.lsp")
+  (zbbz-load-module "zbbz-dat.lsp")
+  (zbbz-load-module "zbbz-help.lsp")
+  (zbbz-load-module "zbbz-dialog.lsp")
+  (zbbz-load-module "zbbz-annotate.lsp"))
 
 (defun c:ZBBZ nil
   (zbbz-load-all)
+  (prompt "\nZBBZ command started.")
   (if (zbbz-dialog-open-loop)
     (zbbz-annotate-run-loop)
     (prompt "\nZBBZ dialog canceled."))

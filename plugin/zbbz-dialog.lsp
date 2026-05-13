@@ -150,12 +150,16 @@
   (action_tile "cancel" "(done_dialog 0)"))
 
 (defun zbbz-dialog-run-once (/ dialog_id result)
-  (setq dialog_id (load_dialog "plugin/zbbz.dcl"))
+  (setq dialog_id (load_dialog (zbbz-plugin-path "zbbz.dcl")))
   (if (< dialog_id 0)
-    nil
+    (progn
+      (prompt "\nUnable to load zbbz.dcl.")
+      nil)
     (progn
       (if (not (new_dialog "SetDimZB" dialog_id))
-        (setq result 0)
+        (progn
+          (prompt "\nUnable to open SetDimZB dialog.")
+          (setq result 0))
         (progn
           (setq *zbbz-dialog-action* 'accept)
           (zbbz-dialog-populate)
