@@ -5,13 +5,7 @@ SetDimZB : dialog {
   : row {
     : boxed_column {
       label = "Coordinate System";
-      : radio_column {
-        key = "coord_mode_group";
-        value = "coord_mode_current";
-        : radio_button { key = "coord_mode_current"; label = "Current Coordinate System"; }
-        : radio_button { key = "coord_mode_world"; label = "World Coordinate System"; }
-        : radio_button { key = "coord_mode_custom"; label = "Custom Coordinate System"; }
-      }
+      : popup_list { key = "coord_mode"; label = "Coordinate System"; value = "0"; }
       : edit_box { key = "base_n"; label = "Base N"; edit_width = 18; }
       : edit_box { key = "base_e"; label = "Base E"; edit_width = 18; }
       : edit_box { key = "rotation"; label = "Rotation"; edit_width = 18; }
@@ -46,14 +40,7 @@ SetDimZB : dialog {
       }
       : boxed_row {
         label = "Prefix";
-        : radio_row {
-          key = "prefix_group";
-          value = "prefix_xy";
-          : radio_button { key = "prefix_xy"; label = "XY"; }
-          : radio_button { key = "prefix_ab"; label = "AB"; }
-          : radio_button { key = "prefix_ne"; label = "NE"; }
-          : radio_button { key = "prefix_none"; label = "None"; }
-        }
+        : popup_list { key = "prefix_mode"; label = "Prefix"; value = "0"; }
       }
     }
     : boxed_column {
@@ -62,7 +49,7 @@ SetDimZB : dialog {
       : popup_list { key = "arrow_style"; label = "Arrow Style"; }
       : edit_box { key = "arrow_size"; label = "Arrow Size"; edit_width = 12; }
       : popup_list { key = "text_style"; label = "Text Style"; }
-      : popup_list { key = "precision"; label = "Precision"; value = "3"; }
+      : popup_list { key = "precision"; label = "Precision"; value = "0"; }
       : row {
         : edit_box { key = "bearing_angle"; label = "Bearing"; edit_width = 12; }
         : button { key = "pick_bearing"; label = "Pick"; }
