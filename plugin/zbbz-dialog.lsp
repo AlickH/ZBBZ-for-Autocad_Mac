@@ -74,7 +74,7 @@
   (zbbz-dialog-set-popup-items "text_style" (zbbz-dialog-default-text-styles))
   (zbbz-dialog-default-select "text_style" 0)
   (zbbz-dialog-set-popup-items "precision" (zbbz-dialog-default-precision-items))
-  (zbbz-dialog-default-select "precision" (zbbz-state-get 'precision))
+  (zbbz-dialog-default-select "precision" (max 0 (min 4 (zbbz-state-get 'precision))))
   (zbbz-dialog-update-custom-input-state)
   (zbbz-dialog-sync-preview))
 

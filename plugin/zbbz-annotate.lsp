@@ -54,7 +54,10 @@
 (defun zbbz-annotate-text-anchor-point ( anchor_point text_point / dir gap )
   (setq dir (zbbz-annotate-horizontal-direction anchor_point text_point))
   (setq gap (zbbz-annotate-gap))
-  (list (+ (car text_point) (* dir gap)) (cadr text_point) 0.0)
+  (if (> dir 0.0)
+    (list (+ (car text_point) gap) (cadr text_point) 0.0)
+    (list (- (car text_point) gap) (cadr text_point) 0.0)
+  )
 )
 
 (defun zbbz-annotate-elbow-point ( anchor_point text_anchor / dir gap )
@@ -66,7 +69,10 @@
 (defun zbbz-annotate-horizontal-end-point ( anchor_point text_anchor / dir gap )
   (setq dir (zbbz-annotate-horizontal-direction anchor_point text_anchor))
   (setq gap (zbbz-annotate-gap))
-  (list (+ (car text_anchor) (* dir gap 3.6)) (cadr text_anchor) 0.0)
+  (if (> dir 0.0)
+    (list (+ (car text_anchor) (* gap 3.6)) (cadr text_anchor) 0.0)
+    (list (- (car text_anchor) (* gap 3.6)) (cadr text_anchor) 0.0)
+  )
 )
 
 (defun zbbz-annotate-upper-text-point ( text_anchor / gap )
@@ -119,16 +125,23 @@
   result
 )
 
-(defun zbbz-annotate-make-text ( insert_point text_value layer_name text_style text_height horizontal_mode )
+(defun zbbz-annotate-make-text ( insert_point text_value layer_name text_style text_height horizontal_mode / text_point )
+  (setq text_point insert_point)
+  (if (= horizontal_mode 2)
+    (setq text_point insert_point)
+  )
   (setq result
     (entmake
       (list
         (cons 0 "TEXT")
         (cons 8 layer_name)
         (cons 7 text_style)
-        (cons 10 insert_point)
+        (cons 10 text_point)
+        (cons 11 text_point)
         (cons 40 text_height)
         (cons 1 text_value)
+        (cons 72 horizontal_mode)
+        (cons 73 2)
       )
     )
   )
