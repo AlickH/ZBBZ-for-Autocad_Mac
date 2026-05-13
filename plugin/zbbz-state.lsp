@@ -1,6 +1,6 @@
 (setq *zbbz-settings* nil)
 
-(defun zbbz-state-defaults nil
+(defun zbbz-state-defaults ()
   (list
     (cons 'coord_mode 'current)
     (cons 'base_n 0.0)
@@ -21,10 +21,10 @@
     (cons 'auto_orient T)
     (cons 'prefix_mode 'xy)))
 
-(defun zbbz-state-reset nil
+(defun zbbz-state-reset ()
   (setq *zbbz-settings* (zbbz-state-defaults)))
 
-(defun zbbz-state-ensure nil
+(defun zbbz-state-ensure ()
   (if (null *zbbz-settings*)
     (zbbz-state-reset))
   *zbbz-settings*)

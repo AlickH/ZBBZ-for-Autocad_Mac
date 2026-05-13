@@ -1,4 +1,4 @@
-(defun zbbz-help-show nil
+(defun zbbz-help-show ()
   (alert
     (strcat
       "ZBBZ for AutoCAD for Mac\n\n"

@@ -20,16 +20,16 @@
     (setq index (+ index 1)))
   (end_list))
 
-(defun zbbz-dialog-default-layers nil
+(defun zbbz-dialog-default-layers ()
   (list "*CURRENT*" "0"))
 
-(defun zbbz-dialog-default-arrow-styles nil
+(defun zbbz-dialog-default-arrow-styles ()
   (list "none"))
 
-(defun zbbz-dialog-default-text-styles nil
+(defun zbbz-dialog-default-text-styles ()
   (list "*CURRENT*" "Standard"))
 
-(defun zbbz-dialog-default-precision-items nil
+(defun zbbz-dialog-default-precision-items ()
   (list "0" "0.0" "0.00" "0.000" "0.0000"))
 
 (defun zbbz-dialog-sync-preview (/ lines)
@@ -53,7 +53,7 @@
   (mode_tile "apply_base_angle" (if (eq mode 'custom) enabled_mode disabled_mode))
   (mode_tile "pick_two_points" enabled_mode))
 
-(defun zbbz-dialog-populate nil
+(defun zbbz-dialog-populate ()
   (zbbz-dialog-set-coord-mode-tiles (zbbz-state-get 'coord_mode))
   (set_tile "base_n" (zbbz-format-number (zbbz-state-get 'base_n) 6))
   (set_tile "base_e" (zbbz-format-number (zbbz-state-get 'base_e) 6))
@@ -86,20 +86,20 @@
   (if value
     (zbbz-state-put key value)))
 
-(defun zbbz-dialog-save-prefix-mode nil
+(defun zbbz-dialog-save-prefix-mode ()
   (cond
     ((= (get_tile "prefix_xy") "1") (zbbz-state-put 'prefix_mode 'xy))
     ((= (get_tile "prefix_ab") "1") (zbbz-state-put 'prefix_mode 'ab))
     ((= (get_tile "prefix_ne") "1") (zbbz-state-put 'prefix_mode 'ne))
     (T (zbbz-state-put 'prefix_mode 'none))))
 
-(defun zbbz-dialog-save-coord-mode nil
+(defun zbbz-dialog-save-coord-mode ()
   (cond
     ((= (get_tile "coord_mode_world") "1") (zbbz-state-put 'coord_mode 'world))
     ((= (get_tile "coord_mode_custom") "1") (zbbz-state-put 'coord_mode 'custom))
     (T (zbbz-state-put 'coord_mode 'current))))
 
-(defun zbbz-dialog-save nil
+(defun zbbz-dialog-save ()
   (zbbz-dialog-save-coord-mode)
   (zbbz-dialog-save-edit-number "base_n" 'base_n)
   (zbbz-dialog-save-edit-number "base_e" 'base_e)
@@ -120,7 +120,7 @@
   (setq *zbbz-dialog-action* action_code)
   (done_dialog 2))
 
-(defun zbbz-dialog-handle-apply-base-angle nil
+(defun zbbz-dialog-handle-apply-base-angle ()
   (zbbz-dialog-save)
   (zbbz-state-apply-base-angle
     (zbbz-state-get 'base_n)
@@ -128,7 +128,7 @@
     (zbbz-state-get 'rotation))
   (zbbz-dialog-populate))
 
-(defun zbbz-dialog-bind-actions nil
+(defun zbbz-dialog-bind-actions ()
   (action_tile "coord_mode_current" "(zbbz-state-put 'coord_mode 'current) (zbbz-dialog-update-custom-input-state)")
   (action_tile "coord_mode_world" "(zbbz-state-put 'coord_mode 'world) (zbbz-dialog-update-custom-input-state)")
   (action_tile "coord_mode_custom" "(zbbz-state-put 'coord_mode 'custom) (zbbz-dialog-update-custom-input-state)")

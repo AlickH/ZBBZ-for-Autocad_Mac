@@ -10,7 +10,7 @@
     (load path)
     (prompt (strcat "\nMissing module: " path))))
 
-(defun zbbz-load-all nil
+(defun zbbz-load-all ()
   (zbbz-load-module "zbbz-state.lsp")
   (zbbz-load-module "zbbz-format.lsp")
   (zbbz-load-module "zbbz-transform.lsp")
@@ -21,7 +21,7 @@
   (zbbz-load-module "zbbz-dialog.lsp")
   (zbbz-load-module "zbbz-annotate.lsp"))
 
-(defun c:ZBBZ nil
+(defun c:ZBBZ ()
   (zbbz-load-all)
   (prompt "\nZBBZ command started.")
   (if (zbbz-dialog-open-loop)

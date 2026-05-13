@@ -79,7 +79,7 @@
       end_point
       layer_name)))
 
-(defun zbbz-grid-draw nil
+(defun zbbz-grid-draw ()
   (setq corner1 (getpoint "\nPick first grid corner: "))
   (if corner1
     (progn

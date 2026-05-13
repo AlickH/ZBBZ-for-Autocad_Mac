@@ -1,15 +1,15 @@
 (setq *zbbz-created-annotations* nil)
 (setq *zbbz-annotation-seq* 0)
 
-(defun zbbz-annotate-reset-session nil
+(defun zbbz-annotate-reset-session ()
   (setq *zbbz-created-annotations* nil)
   (setq *zbbz-annotation-seq* 0))
 
-(defun zbbz-annotate-next-id nil
+(defun zbbz-annotate-next-id ()
   (setq *zbbz-annotation-seq* (+ *zbbz-annotation-seq* 1))
   *zbbz-annotation-seq*)
 
-(defun zbbz-annotate-current-settings nil
+(defun zbbz-annotate-current-settings ()
   (zbbz-state-ensure))
 
 (defun zbbz-annotate-layer-name (/ layer_name)
@@ -143,7 +143,7 @@
       (if text_point
         (zbbz-annotate-create anchor_point text_point)))))
 
-(defun zbbz-annotate-run-loop nil
+(defun zbbz-annotate-run-loop ()
   (while (zbbz-annotate-run-once)
     (princ))
   (princ))
