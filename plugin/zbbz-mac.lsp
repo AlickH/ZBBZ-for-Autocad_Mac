@@ -31,7 +31,7 @@
 
 (defun c:ZBBZ ()
   (zbbz-load-all)
-  (zbbz-state-reset)
+  (zbbz-state-ensure)
   (prompt "\nZBBZ command started.")
   (if (zbbz-dialog-open-loop)
     (progn

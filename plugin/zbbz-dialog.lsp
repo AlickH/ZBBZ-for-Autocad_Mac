@@ -30,7 +30,7 @@
   (list "*CURRENT*" "Standard"))
 
 (defun zbbz-dialog-default-precision-items ()
-  (list "0" "0.0" "0.00" "0.000" "0.0000"))
+  (list "0.000" "0" "0.0" "0.00" "0.0000"))
 
 (defun zbbz-dialog-sync-preview (/ lines)
   (setq lines
@@ -74,7 +74,13 @@
   (zbbz-dialog-set-popup-items "text_style" (zbbz-dialog-default-text-styles))
   (zbbz-dialog-default-select "text_style" 0)
   (zbbz-dialog-set-popup-items "precision" (zbbz-dialog-default-precision-items))
-  (zbbz-dialog-default-select "precision" (max 0 (min 4 (zbbz-state-get 'precision))))
+  (zbbz-dialog-default-select "precision"
+    (cond
+      ((= (zbbz-state-get 'precision) 0) 1)
+      ((= (zbbz-state-get 'precision) 1) 2)
+      ((= (zbbz-state-get 'precision) 2) 3)
+      ((= (zbbz-state-get 'precision) 4) 4)
+      (T 0)))
   (zbbz-dialog-update-custom-input-state)
   (zbbz-dialog-sync-preview))
 
@@ -112,7 +118,15 @@
   (zbbz-state-put 'group_on (= (get_tile "group_on") "1"))
   (zbbz-state-put 'auto_orient (= (get_tile "auto_orient") "1"))
   (zbbz-state-put 'background_mask (= (get_tile "background_mask") "1"))
-  (zbbz-state-put 'precision (atoi (get_tile "precision")))
+  (setq precision_index (atoi (get_tile "precision")))
+  (zbbz-state-put 'precision
+    (cond
+      ((= precision_index 0) 3)
+      ((= precision_index 1) 0)
+      ((= precision_index 2) 1)
+      ((= precision_index 3) 2)
+      ((= precision_index 4) 4)
+      (T 3)))
   (zbbz-dialog-save-prefix-mode))
 
 (defun zbbz-dialog-request-action (action_code)
