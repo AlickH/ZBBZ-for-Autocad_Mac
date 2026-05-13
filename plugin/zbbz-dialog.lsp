@@ -17,6 +17,9 @@
     "|"
     (if (getenv "APPLELOCALE") (strcase (getenv "APPLELOCALE")) "")))
 
+(defun zbbz-dialog-language-setting ()
+  (zbbz-state-get 'dialog_language))
+
 (defun zbbz-dialog-preferences-dir ()
   (strcat (getenv "HOME") "/Library/Preferences"))
 
@@ -67,7 +70,7 @@
   (foreach line (zbbz-dialog-language-debug-lines)
     (prompt (strcat "\n" line))))
 
-(defun zbbz-dialog-language-key (/ language_source)
+(defun zbbz-dialog-auto-language-key (/ language_source)
   (setq language_source (zbbz-dialog-language-source))
   (cond
     ((or (wcmatch language_source "*ZH*")
@@ -100,6 +103,54 @@
          (wcmatch language_source "*SPANISH*"))
       "es")
     (T "en")))
+
+(defun zbbz-dialog-language-key (/ setting)
+  (setq setting (zbbz-dialog-language-setting))
+  (if (member setting '("en" "zh" "fr" "de" "it" "ja" "ko" "es"))
+    setting
+    (zbbz-dialog-auto-language-key)))
+
+(defun zbbz-dialog-language-options (/ ui_language_key)
+  (setq ui_language_key (zbbz-dialog-language-key))
+  (list
+    (cons "cad"
+      (cond
+        ((= ui_language_key "zh") "跟随 AutoCAD")
+        ((= ui_language_key "fr") "Suivre AutoCAD")
+        ((= ui_language_key "de") "AutoCAD folgen")
+        ((= ui_language_key "it") "Segui AutoCAD")
+        ((= ui_language_key "ja") "AutoCAD に従う")
+        ((= ui_language_key "ko") "AutoCAD 따르기")
+        ((= ui_language_key "es") "Seguir AutoCAD")
+        (T "Follow AutoCAD")))
+    (cons "en" "English")
+    (cons "zh" "简体中文 (Chinese, Simplified)")
+    (cons "fr" "francais (French)")
+    (cons "de" "Deutsch (German)")
+    (cons "it" "italiano (Italian)")
+    (cons "ja" "日本語 (Japanese)")
+    (cons "ko" "한국어 (Korean)")
+    (cons "es" "espanol (Spanish)")))
+
+(defun zbbz-dialog-language-list-string (/ options list_string)
+  (setq options (zbbz-dialog-language-options))
+  (setq list_string "")
+  (foreach option options
+    (if (= list_string "")
+      (setq list_string (cdr option))
+      (setq list_string (strcat list_string "\\n" (cdr option)))))
+  list_string)
+
+(defun zbbz-dialog-language-index (/ options target_code index found_index)
+  (setq options (zbbz-dialog-language-options))
+  (setq target_code (zbbz-dialog-language-setting))
+  (setq index 0)
+  (setq found_index 0)
+  (foreach option options
+    (if (= (car option) target_code)
+      (setq found_index index))
+    (setq index (+ index 1)))
+  (itoa found_index))
 
 (defun zbbz-dialog-translation-pairs (/ language_key)
   (setq language_key (zbbz-dialog-language-key))
@@ -138,6 +189,7 @@
         (cons "Annotation Scale" "标注比例")
         (cons "Text Height" "文字高度")
         (cons "Background Mask" "背景遮罩")
+        (cons "Dialog Language" "界面语言")
         (cons "Generate DAT File" "导出 DAT 文件")
         (cons "OK" "确定")
         (cons "Cancel" "取消")
@@ -176,6 +228,7 @@
         (cons "Annotation Scale" "Echelle d'annotation")
         (cons "Text Height" "Hauteur du texte")
         (cons "Background Mask" "Masque d'arriere-plan")
+        (cons "Dialog Language" "Langue de l'interface")
         (cons "Generate DAT File" "Generer le fichier DAT")
         (cons "OK" "OK")
         (cons "Cancel" "Annuler")
@@ -214,6 +267,7 @@
         (cons "Annotation Scale" "Beschriftungsmassstab")
         (cons "Text Height" "Texthoehe")
         (cons "Background Mask" "Hintergrundmaske")
+        (cons "Dialog Language" "Dialogs Sprache")
         (cons "Generate DAT File" "DAT-Datei erzeugen")
         (cons "OK" "OK")
         (cons "Cancel" "Abbrechen")
@@ -252,6 +306,7 @@
         (cons "Annotation Scale" "Scala annotazione")
         (cons "Text Height" "Altezza testo")
         (cons "Background Mask" "Maschera sfondo")
+        (cons "Dialog Language" "Lingua finestra")
         (cons "Generate DAT File" "Genera file DAT")
         (cons "OK" "OK")
         (cons "Cancel" "Annulla")
@@ -290,6 +345,7 @@
         (cons "Annotation Scale" "注記尺度")
         (cons "Text Height" "文字高さ")
         (cons "Background Mask" "背景マスク")
+        (cons "Dialog Language" "ダイアログ言語")
         (cons "Generate DAT File" "DAT ファイルを生成")
         (cons "OK" "OK")
         (cons "Cancel" "キャンセル")
@@ -328,6 +384,7 @@
         (cons "Annotation Scale" "주석 축척")
         (cons "Text Height" "문자 높이")
         (cons "Background Mask" "배경 마스크")
+        (cons "Dialog Language" "대화상자 언어")
         (cons "Generate DAT File" "DAT 파일 생성")
         (cons "OK" "확인")
         (cons "Cancel" "취소")
@@ -366,6 +423,7 @@
         (cons "Annotation Scale" "Escala de anotacion")
         (cons "Text Height" "Altura de texto")
         (cons "Background Mask" "Mascara de fondo")
+        (cons "Dialog Language" "Idioma del panel")
         (cons "Generate DAT File" "Generar archivo DAT")
         (cons "OK" "Aceptar")
         (cons "Cancel" "Cancelar")
@@ -453,6 +511,8 @@
         (setq runtime_line (strcat "      : popup_list { key = \"text_style\"; label = \"Text Style\"; list = \"*CURRENT*\\nStandard\"; value = \"" (if (equal text_style "Standard") "1" "0") "\"; }"))))
     ((equal line "      : popup_list { key = \"precision\"; label = \"Precision\"; list = \"0.000\\n0.00\\n0.0\\n0\\n0.0000\"; value = \"0\"; }")
       (setq runtime_line (strcat "      : popup_list { key = \"precision\"; label = \"Precision\"; list = \"0.000\\n0.00\\n0.0\\n0\\n0.0000\"; value = \"" (zbbz-dialog-precision-index) "\"; }")))
+    ((equal line "      : popup_list { key = \"dialog_language\"; label = \"Dialog Language\"; list = \"Follow AutoCAD\\nEnglish\\nChinese, Simplified\\nFrench\\nGerman\\nItalian\\nJapanese\\nKorean\\nSpanish\"; value = \"0\"; }")
+      (setq runtime_line (strcat "      : popup_list { key = \"dialog_language\"; label = \"Dialog Language\"; list = \"" (zbbz-dialog-language-list-string) "\"; value = \"" (zbbz-dialog-language-index) "\"; }")))
     ((equal line "        : edit_box { key = \"bearing_angle\"; label = \"Bearing\"; edit_width = 12; value = \"0.000000\"; }")
       (setq runtime_line (strcat "        : edit_box { key = \"bearing_angle\"; label = \"Bearing\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-state-get 'bearing_angle) 6) "\"; }")))
     ((equal line "      : edit_box { key = \"dim_scale\"; label = \"Annotation Scale\"; edit_width = 12; value = \"1.000000\"; }")
@@ -511,6 +571,7 @@
   (set_tile "dim_scale" (zbbz-format-number (zbbz-state-get 'dim_scale) 6))
   (set_tile "text_height" (zbbz-format-number (zbbz-state-get 'text_height) 6))
   (set_tile "background_mask" (zbbz-dialog-bool-to-tile (zbbz-state-get 'background_mask)))
+  (set_tile "dialog_language" (zbbz-dialog-language-index))
   (zbbz-dialog-update-custom-input-state)
   (zbbz-dialog-sync-preview)
   (setq *zbbz-dialog-initializing* nil))
@@ -531,7 +592,9 @@
   (zbbz-state-put 'arrow_style
     (if (= (atoi (get_tile "arrow_style")) 1) "none" "triangle"))
   (zbbz-state-put 'text_style
-    (if (= (atoi (get_tile "text_style")) 1) "Standard" "")))
+    (if (= (atoi (get_tile "text_style")) 1) "Standard" ""))
+  (zbbz-state-put 'dialog_language
+    (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
 
 (defun zbbz-dialog-save-prefix-mode ()
   (cond
@@ -591,6 +654,7 @@
   (action_tile "auto_orient" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-behavior-toggles))")
   (action_tile "background_mask" "(if (not *zbbz-dialog-initializing*) (zbbz-state-put 'background_mask (equal $value \"1\")))")
   (action_tile "prefix_mode" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-prefix-mode) (zbbz-dialog-sync-preview)))")
+  (action_tile "dialog_language" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-request-action 'refresh_language))")
   (action_tile "apply_base_angle" "(zbbz-dialog-handle-apply-base-angle)")
   (action_tile "pick_two_points" "(zbbz-dialog-request-action 'pick_two_points)")
   (action_tile "draw_grid" "(zbbz-dialog-request-action 'draw_grid)")
@@ -649,6 +713,8 @@
             (setq calibration (zbbz-pick-two-point-calibration))
             (if calibration
               (zbbz-pick-apply-calibration calibration)))
+          ((eq action_value 'refresh_language)
+            T)
           ((eq action_value 'draw_grid)
             (zbbz-grid-draw))
           ((eq action_value 'export_dat)

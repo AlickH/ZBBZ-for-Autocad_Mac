@@ -24,7 +24,8 @@
     (cons 'swap_xy nil)
     (cons 'group_on nil)
     (cons 'auto_orient T)
-    (cons 'prefix_mode 'xy)))
+    (cons 'prefix_mode 'xy)
+    (cons 'dialog_language "cad")))
 
 (defun zbbz-state-boolean-key-p (key)
   (member key '(background_mask swap_xy group_on auto_orient)))

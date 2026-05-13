@@ -59,6 +59,7 @@ SetDimZB : dialog {
       : edit_box { key = "arrow_size"; label = "Arrow Size"; edit_width = 12; value = "2.500000"; }
       : popup_list { key = "text_style"; label = "Text Style"; list = "*CURRENT*\nStandard"; value = "0"; }
       : popup_list { key = "precision"; label = "Precision"; list = "0.000\n0.00\n0.0\n0\n0.0000"; value = "0"; }
+      : popup_list { key = "dialog_language"; label = "Dialog Language"; list = "Follow AutoCAD\nEnglish\nChinese, Simplified\nFrench\nGerman\nItalian\nJapanese\nKorean\nSpanish"; value = "0"; }
       : row {
         : edit_box { key = "bearing_angle"; label = "Bearing"; edit_width = 12; value = "0.000000"; }
         : button { key = "pick_bearing"; label = "Pick"; }
