@@ -37,27 +37,41 @@
          (< left right)
          (not (wcmatch left "*AutoCADLT*"))))))
 
+(defun zbbz-dialog-preference-keys (/ plist_path keys domain_name)
+  (setq keys nil)
+  (foreach plist_path (zbbz-dialog-preference-plist-paths)
+    (setq domain_name (vl-filename-base plist_path))
+    (setq keys
+      (append keys
+        (list
+          plist_path
+          (substr plist_path 1 (- (strlen plist_path) 6))
+          domain_name))))
+  keys)
+
 (defun zbbz-dialog-vl-registry-read-safe (reg_key val_name / result)
   (setq result (vl-catch-all-apply 'vl-registry-read (list reg_key val_name)))
   (if (vl-catch-all-error-p result)
     nil
     result))
 
-(defun zbbz-dialog-language-from-plist (/ value)
+(defun zbbz-dialog-preference-value (value_name / value)
   (setq value nil)
-  (foreach plist_path (zbbz-dialog-preference-plist-paths)
+  (foreach plist_key (zbbz-dialog-preference-keys)
     (if (null value)
-      (setq value (zbbz-dialog-vl-registry-read-safe plist_path "AppleLanguages")))
-    (if (null value)
-      (setq value
-        (zbbz-dialog-vl-registry-read-safe
-          (substr plist_path 1 (- (strlen plist_path) 6))
-          "AppleLanguages"))))
+      (setq value (zbbz-dialog-vl-registry-read-safe plist_key value_name))))
   value)
+
+(defun zbbz-dialog-language-from-plist ()
+  (zbbz-dialog-preference-value "AppleLanguages"))
+
+(defun zbbz-dialog-help-url-from-plist ()
+  (zbbz-dialog-preference-value "AcHelpBaseURL"))
 
 (defun zbbz-dialog-language-debug-lines ()
   (list
     (strcat "PLIST_LANGUAGE=" (if (zbbz-dialog-language-from-plist) (vl-prin1-to-string (zbbz-dialog-language-from-plist)) "nil"))
+    (strcat "PLIST_HELP_URL=" (if (zbbz-dialog-help-url-from-plist) (vl-prin1-to-string (zbbz-dialog-help-url-from-plist)) "nil"))
     (strcat "LOCALE=" (if (getvar "LOCALE") (vl-prin1-to-string (getvar "LOCALE")) "nil"))
     (strcat "LANG=" (if (getenv "LANG") (vl-prin1-to-string (getenv "LANG")) "nil"))
     (strcat "LC_ALL=" (if (getenv "LC_ALL") (vl-prin1-to-string (getenv "LC_ALL")) "nil"))
@@ -71,7 +85,11 @@
     (prompt (strcat "\n" line))))
 
 (defun zbbz-dialog-auto-language-key (/ language_source)
-  (setq language_source (zbbz-dialog-language-source))
+  (setq language_source
+    (strcat
+      (if (zbbz-dialog-help-url-from-plist) (strcase (zbbz-dialog-help-url-from-plist)) "")
+      "|"
+      (zbbz-dialog-language-source)))
   (cond
     ((or (wcmatch language_source "*ZH*")
          (wcmatch language_source "*CHS*")
@@ -80,26 +98,32 @@
       "zh")
     ((or (wcmatch language_source "*FR*")
          (wcmatch language_source "*FRA*")
+         (wcmatch language_source "*FRA/*")
          (wcmatch language_source "*FRENCH*"))
       "fr")
     ((or (wcmatch language_source "*DE*")
          (wcmatch language_source "*DEU*")
+         (wcmatch language_source "*DEU/*")
          (wcmatch language_source "*GERMAN*"))
       "de")
     ((or (wcmatch language_source "*IT*")
          (wcmatch language_source "*ITA*")
+         (wcmatch language_source "*ITA/*")
          (wcmatch language_source "*ITALIAN*"))
       "it")
     ((or (wcmatch language_source "*JA*")
          (wcmatch language_source "*JPN*")
+         (wcmatch language_source "*JPN/*")
          (wcmatch language_source "*JAPANESE*"))
       "ja")
     ((or (wcmatch language_source "*KO*")
          (wcmatch language_source "*KOR*")
+         (wcmatch language_source "*KOR/*")
          (wcmatch language_source "*KOREAN*"))
       "ko")
     ((or (wcmatch language_source "*ES*")
          (wcmatch language_source "*ESP*")
+         (wcmatch language_source "*ESP/*")
          (wcmatch language_source "*SPANISH*"))
       "es")
     (T "en")))
