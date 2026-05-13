@@ -36,6 +36,32 @@
     (cons 'auto_orient T)
     (cons 'prefix_mode 'xy)))
 
+(defun zbbz-state-boolean-key-p (key)
+  (member key '(background_mask swap_xy group_on auto_orient)))
+
+(defun zbbz-state-assoc-value (key settings / pair)
+  (setq pair (assoc key settings))
+  (cond
+    ((null pair) nil)
+    ((and (listp pair) (= (length pair) 1) (eq (car pair) key)) T)
+    (T (cdr pair))))
+
+(defun zbbz-state-truthy-p (value)
+  (not (null value)))
+
+(defun zbbz-state-normalize-settings (settings / normalized key default value)
+  (setq normalized nil)
+  (foreach item (zbbz-state-defaults)
+    (setq key (car item))
+    (setq default (cdr item))
+    (setq value (zbbz-state-assoc-value key settings))
+    (if (zbbz-state-boolean-key-p key)
+      (setq value (if (zbbz-state-truthy-p value) T nil))
+      (if (null value)
+        (setq value default)))
+    (setq normalized (append normalized (list (cons key value)))))
+  normalized)
+
 (defun zbbz-state-save-config ( / file_handle )
   (zbbz-state-debug-prompt (strcat "save path=" (zbbz-state-config-path)))
   (zbbz-state-debug-value "save settings" *zbbz-settings*)
@@ -62,7 +88,7 @@
           (setq config_value (read config_line))
           (zbbz-state-debug-value "parsed config" config_value)
           (if config_value
-            config_value
+            (zbbz-state-normalize-settings config_value)
             (zbbz-state-defaults)
           )
         )
@@ -98,10 +124,7 @@
   *zbbz-settings*)
 
 (defun zbbz-state-get (key / pair)
-  (setq pair (assoc key (zbbz-state-ensure)))
-  (if pair
-    (cdr pair)
-    nil))
+  (zbbz-state-assoc-value key (zbbz-state-ensure)))
 
 (defun zbbz-state-put (key value / state pair)
   (setq state (zbbz-state-ensure))
