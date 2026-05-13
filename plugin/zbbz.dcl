@@ -55,7 +55,7 @@ SetDimZB : dialog {
     : boxed_column {
       label = "Style";
       : popup_list { key = "dim_layer"; label = "Annotation Layer"; list = "*CURRENT*\n0"; value = "0"; }
-      : popup_list { key = "arrow_style"; label = "Arrow Style"; list = "none"; value = "0"; }
+      : popup_list { key = "arrow_style"; label = "Arrow Style"; list = "triangle\nnone"; value = "0"; }
       : edit_box { key = "arrow_size"; label = "Arrow Size"; edit_width = 12; value = "2.500000"; }
       : popup_list { key = "text_style"; label = "Text Style"; list = "*CURRENT*\nStandard"; value = "0"; }
       : popup_list { key = "precision"; label = "Precision"; list = "0.000\n0.00\n0.0\n0\n0.0000"; value = "0"; }

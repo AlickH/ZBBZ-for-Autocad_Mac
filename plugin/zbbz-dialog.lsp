@@ -51,6 +51,8 @@
       (progn
         (setq dim_layer (zbbz-state-get 'dim_layer))
         (strcat "      : popup_list { key = \"dim_layer\"; label = \"Annotation Layer\"; list = \"*CURRENT*\\n0\"; value = \"" (if (equal dim_layer "0") "1" "0") "\"; }")))
+    ((equal line "      : popup_list { key = \"arrow_style\"; label = \"Arrow Style\"; list = \"triangle\\nnone\"; value = \"0\"; }")
+      (strcat "      : popup_list { key = \"arrow_style\"; label = \"Arrow Style\"; list = \"triangle\\nnone\"; value = \"" (if (equal (zbbz-state-get 'arrow_style) "none") "1" "0") "\"; }"))
     ((equal line "      : edit_box { key = \"arrow_size\"; label = \"Arrow Size\"; edit_width = 12; value = \"2.500000\"; }")
       (strcat "      : edit_box { key = \"arrow_size\"; label = \"Arrow Size\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-state-get 'arrow_size) 6) "\"; }"))
     ((equal line "      : popup_list { key = \"text_style\"; label = \"Text Style\"; list = \"*CURRENT*\\nStandard\"; value = \"0\"; }")
@@ -152,6 +154,14 @@
   (zbbz-state-put 'group_on (equal (get_tile "group_on") "1"))
   (zbbz-state-put 'auto_orient (equal (get_tile "auto_orient") "1")))
 
+(defun zbbz-dialog-save-style-popups ()
+  (zbbz-state-put 'dim_layer
+    (if (= (atoi (get_tile "dim_layer")) 1) "0" ""))
+  (zbbz-state-put 'arrow_style
+    (if (= (atoi (get_tile "arrow_style")) 1) "none" "triangle"))
+  (zbbz-state-put 'text_style
+    (if (= (atoi (get_tile "text_style")) 1) "Standard" "")))
+
 (defun zbbz-dialog-save-prefix-mode ()
   (cond
     ((equal (get_tile "prefix_ab") "1") (zbbz-state-put 'prefix_mode 'ab))
@@ -177,7 +187,8 @@
       (zbbz-dialog-save-edit-number "dim_scale" 'dim_scale)
       (zbbz-dialog-save-edit-number "text_height" 'text_height)
       (zbbz-dialog-save-behavior-toggles)
-      (zbbz-state-put 'background_mask (= (get_tile "background_mask") "1"))
+      (zbbz-dialog-save-style-popups)
+      (zbbz-state-put 'background_mask (equal (get_tile "background_mask") "1"))
       (setq precision_index (atoi (get_tile "precision")))
       (zbbz-state-put 'precision
         (cond
@@ -209,7 +220,7 @@
   (action_tile "swap_xy" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-behavior-toggles) (zbbz-dialog-sync-preview)))")
   (action_tile "group_on" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-behavior-toggles))")
   (action_tile "auto_orient" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-behavior-toggles))")
-  (action_tile "background_mask" "(if (not *zbbz-dialog-initializing*) (zbbz-state-put 'background_mask (= $value \"1\")))")
+  (action_tile "background_mask" "(if (not *zbbz-dialog-initializing*) (zbbz-state-put 'background_mask (equal $value \"1\")))")
   (action_tile "prefix_xy" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-prefix-mode) (zbbz-dialog-sync-preview)))")
   (action_tile "prefix_ab" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-prefix-mode) (zbbz-dialog-sync-preview)))")
   (action_tile "prefix_ne" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-prefix-mode) (zbbz-dialog-sync-preview)))")

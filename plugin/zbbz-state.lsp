@@ -22,7 +22,7 @@
     (cons 'base_e 0.0)
     (cons 'rotation 0.0)
     (cons 'dim_layer "")
-    (cons 'arrow_style "none")
+    (cons 'arrow_style "triangle")
     (cons 'arrow_size 2.5)
     (cons 'text_style "")
     (cons 'precision 3)
