@@ -4,10 +4,43 @@
 (setq *zbbz-dialog-initializing* nil)
 (setq *zbbz-dialog-settings* nil)
 
+(defun zbbz-dialog-temp-config-path ()
+  (zbbz-plugin-path "zbbz-config.tmp.lsp"))
+
+(defun zbbz-dialog-save-temp-config (/ file_handle)
+  (setq file_handle (open (zbbz-dialog-temp-config-path) "w"))
+  (if file_handle
+    (progn
+      (write-line (vl-prin1-to-string *zbbz-dialog-settings*) file_handle)
+      (close file_handle)
+      T)
+    nil))
+
+(defun zbbz-dialog-load-temp-config (/ file_handle config_line config_value)
+  (setq file_handle (open (zbbz-dialog-temp-config-path) "r"))
+  (if file_handle
+    (progn
+      (setq config_line (read-line file_handle))
+      (close file_handle)
+      (if config_line
+        (progn
+          (setq config_value (read config_line))
+          (if config_value
+            (zbbz-state-normalize-settings config_value)
+            nil))
+        nil))
+    nil))
+
+(defun zbbz-dialog-delete-temp-config ()
+  (if (findfile (zbbz-dialog-temp-config-path))
+    (vl-file-delete (zbbz-dialog-temp-config-path))))
+
 (defun zbbz-dialog-begin-session ()
-  (setq *zbbz-dialog-settings* (zbbz-state-ensure)))
+  (setq *zbbz-dialog-settings* (zbbz-state-ensure))
+  (zbbz-dialog-save-temp-config))
 
 (defun zbbz-dialog-end-session ()
+  (zbbz-dialog-delete-temp-config)
   (setq *zbbz-dialog-settings* nil))
 
 (defun zbbz-dialog-get (key / pair)
@@ -22,6 +55,7 @@
   (if pair
     (setq *zbbz-dialog-settings* (subst (cons key value) pair *zbbz-dialog-settings*))
     (setq *zbbz-dialog-settings* (append *zbbz-dialog-settings* (list (cons key value)))))
+  (zbbz-dialog-save-temp-config)
   *zbbz-dialog-settings*)
 
 (defun zbbz-dialog-put-many (pairs / pair)
@@ -29,7 +63,10 @@
     (zbbz-dialog-put (car pair) (cdr pair)))
   *zbbz-dialog-settings*)
 
-(defun zbbz-dialog-commit-session ()
+(defun zbbz-dialog-commit-session (/ temp_settings)
+  (setq temp_settings (zbbz-dialog-load-temp-config))
+  (if temp_settings
+    (setq *zbbz-dialog-settings* temp_settings))
   (if *zbbz-dialog-settings*
     (zbbz-state-put-many *zbbz-dialog-settings*)))
 
@@ -640,51 +677,28 @@
   (zbbz-dialog-sync-preview)
   (setq *zbbz-dialog-initializing* nil))
 
-(defun zbbz-dialog-save-edit-number (tile key / value)
-  (setq value (distof (get_tile tile) 2))
-  (if value
-    (zbbz-dialog-put key value)))
-
 (defun zbbz-dialog-save-number-value (key raw_value / value)
   (setq value (distof raw_value 2))
   (if value
     (zbbz-dialog-put key value)))
 
-(defun zbbz-dialog-edit-number-pair (tile key / value)
-  (setq value (distof (get_tile tile) 2))
-  (if value
-    (list (cons key value))
-    nil))
+(defun zbbz-dialog-save-toggle-value (key raw_value)
+  (zbbz-dialog-put key (equal raw_value "1")))
 
-(defun zbbz-dialog-save-behavior-toggles ()
-  (zbbz-dialog-put 'swap_xy (equal (get_tile "swap_xy") "1"))
-  (zbbz-dialog-put 'group_on (equal (get_tile "group_on") "1"))
-  (zbbz-dialog-put 'auto_orient (equal (get_tile "auto_orient") "1")))
-
-(defun zbbz-dialog-save-style-popups ()
+(defun zbbz-dialog-save-dim-layer-value (raw_value)
   (zbbz-dialog-put 'dim_layer
-    (if (= (atoi (get_tile "dim_layer")) 1) "0" ""))
+    (if (= (atoi raw_value) 1) "0" "")))
+
+(defun zbbz-dialog-save-arrow-style-value (raw_value)
   (zbbz-dialog-put 'arrow_style
-    (if (= (atoi (get_tile "arrow_style")) 1) "none" "triangle"))
+    (if (= (atoi raw_value) 1) "none" "triangle")))
+
+(defun zbbz-dialog-save-text-style-value (raw_value)
   (zbbz-dialog-put 'text_style
-    (if (= (atoi (get_tile "text_style")) 1) "Standard" ""))
-  (zbbz-dialog-put 'dialog_language
-    (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
+    (if (= (atoi raw_value) 1) "Standard" "")))
 
-(defun zbbz-dialog-save-dim-layer ()
-  (zbbz-dialog-put 'dim_layer
-    (if (= (atoi (get_tile "dim_layer")) 1) "0" "")))
-
-(defun zbbz-dialog-save-arrow-style ()
-  (zbbz-dialog-put 'arrow_style
-    (if (= (atoi (get_tile "arrow_style")) 1) "none" "triangle")))
-
-(defun zbbz-dialog-save-text-style ()
-  (zbbz-dialog-put 'text_style
-    (if (= (atoi (get_tile "text_style")) 1) "Standard" "")))
-
-(defun zbbz-dialog-precision-value (/ precision_index)
-  (setq precision_index (atoi (get_tile "precision")))
+(defun zbbz-dialog-precision-value (raw_value / precision_index)
+  (setq precision_index (atoi raw_value))
   (cond
     ((= precision_index 0) 3)
     ((= precision_index 1) 2)
@@ -693,62 +707,12 @@
     ((= precision_index 4) 4)
     (T 3)))
 
-(defun zbbz-dialog-save-precision ()
-  (zbbz-dialog-put 'precision (zbbz-dialog-precision-value)))
+(defun zbbz-dialog-save-precision-value (raw_value)
+  (zbbz-dialog-put 'precision (zbbz-dialog-precision-value raw_value)))
 
-(defun zbbz-dialog-save-language ()
+(defun zbbz-dialog-save-language-value (raw_value)
   (zbbz-dialog-put 'dialog_language
-    (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
-
-(defun zbbz-dialog-coord-mode-value ()
-  (cond
-    ((equal (get_tile "coord_mode") "coord_world") 'world)
-    ((equal (get_tile "coord_mode") "coord_custom") 'custom)
-    (T 'current)))
-
-(defun zbbz-dialog-save-prefix-mode ()
-  (cond
-    ((equal (get_tile "prefix_mode") "prefix_ab") (zbbz-dialog-put 'prefix_mode 'ab))
-    ((equal (get_tile "prefix_mode") "prefix_ne") (zbbz-dialog-put 'prefix_mode 'ne))
-    ((equal (get_tile "prefix_mode") "prefix_none") (zbbz-dialog-put 'prefix_mode 'none))
-    (T (zbbz-dialog-put 'prefix_mode 'xy))))
-
-(defun zbbz-dialog-prefix-mode-value ()
-  (cond
-    ((equal (get_tile "prefix_mode") "prefix_ab") 'ab)
-    ((equal (get_tile "prefix_mode") "prefix_ne") 'ne)
-    ((equal (get_tile "prefix_mode") "prefix_none") 'none)
-    (T 'xy)))
-
-(defun zbbz-dialog-save-coord-mode ()
-  (zbbz-dialog-put 'coord_mode (zbbz-dialog-coord-mode-value)))
-
-(defun zbbz-dialog-save (/ pairs)
-  (if (not *zbbz-dialog-initializing*)
-    (progn
-      (setq pairs
-        (append
-          (list
-            (cons 'coord_mode (zbbz-dialog-coord-mode-value))
-            (cons 'swap_xy (equal (get_tile "swap_xy") "1"))
-            (cons 'group_on (equal (get_tile "group_on") "1"))
-            (cons 'auto_orient (equal (get_tile "auto_orient") "1"))
-            (cons 'dim_layer (if (= (atoi (get_tile "dim_layer")) 1) "0" ""))
-            (cons 'arrow_style (if (= (atoi (get_tile "arrow_style")) 1) "none" "triangle"))
-            (cons 'text_style (if (= (atoi (get_tile "text_style")) 1) "Standard" ""))
-            (cons 'dialog_language (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es")))
-            (cons 'background_mask (equal (get_tile "background_mask") "1"))
-            (cons 'precision (zbbz-dialog-precision-value))
-            (cons 'prefix_mode (zbbz-dialog-prefix-mode-value)))
-          (zbbz-dialog-edit-number-pair "base_n" 'base_n)
-          (zbbz-dialog-edit-number-pair "base_e" 'base_e)
-          (zbbz-dialog-edit-number-pair "rotation" 'rotation)
-          (zbbz-dialog-edit-number-pair "arrow_size" 'arrow_size)
-          (zbbz-dialog-edit-number-pair "bearing_angle" 'bearing_angle)
-          (zbbz-dialog-edit-number-pair "dim_scale" 'dim_scale)
-          (zbbz-dialog-edit-number-pair "text_height" 'text_height)))
-      (foreach pair pairs
-        (zbbz-dialog-put (car pair) (cdr pair))))))
+    (nth (atoi raw_value) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
 
 (defun zbbz-dialog-request-action (action_code)
   (setq *zbbz-dialog-action* action_code)
@@ -769,21 +733,26 @@
       (zbbz-dialog-populate))))
 
 (defun zbbz-dialog-bind-actions ()
-  (action_tile "coord_mode" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-coord-mode) (zbbz-dialog-update-custom-input-state)))")
+  (action_tile "coord_current" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-put 'coord_mode 'current) (zbbz-dialog-update-custom-input-state)))")
+  (action_tile "coord_world" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-put 'coord_mode 'world) (zbbz-dialog-update-custom-input-state)))")
+  (action_tile "coord_custom" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-put 'coord_mode 'custom) (zbbz-dialog-update-custom-input-state)))")
   (action_tile "base_n" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-number-value 'base_n $value))")
   (action_tile "base_e" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-number-value 'base_e $value))")
   (action_tile "rotation" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-number-value 'rotation $value))")
-  (action_tile "swap_xy" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-behavior-toggles) (zbbz-dialog-sync-preview)))")
-  (action_tile "group_on" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-behavior-toggles))")
-  (action_tile "auto_orient" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-behavior-toggles))")
-  (action_tile "background_mask" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-put 'background_mask (equal $value \"1\")))")
-  (action_tile "prefix_mode" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-prefix-mode) (zbbz-dialog-sync-preview)))")
-  (action_tile "dim_layer" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-dim-layer))")
-  (action_tile "arrow_style" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-arrow-style))")
+  (action_tile "swap_xy" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-toggle-value 'swap_xy $value) (zbbz-dialog-sync-preview)))")
+  (action_tile "group_on" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-toggle-value 'group_on $value))")
+  (action_tile "auto_orient" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-toggle-value 'auto_orient $value))")
+  (action_tile "background_mask" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-toggle-value 'background_mask $value))")
+  (action_tile "prefix_xy" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-put 'prefix_mode 'xy) (zbbz-dialog-sync-preview)))")
+  (action_tile "prefix_ab" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-put 'prefix_mode 'ab) (zbbz-dialog-sync-preview)))")
+  (action_tile "prefix_ne" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-put 'prefix_mode 'ne) (zbbz-dialog-sync-preview)))")
+  (action_tile "prefix_none" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-put 'prefix_mode 'none) (zbbz-dialog-sync-preview)))")
+  (action_tile "dim_layer" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-dim-layer-value $value))")
+  (action_tile "arrow_style" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-arrow-style-value $value))")
   (action_tile "arrow_size" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-number-value 'arrow_size $value))")
-  (action_tile "text_style" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-text-style))")
-  (action_tile "precision" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-precision) (zbbz-dialog-sync-preview)))")
-  (action_tile "dialog_language" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-language) (zbbz-dialog-request-action 'refresh_language)))")
+  (action_tile "text_style" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-text-style-value $value))")
+  (action_tile "precision" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-precision-value $value) (zbbz-dialog-sync-preview)))")
+  (action_tile "dialog_language" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-language-value $value) (zbbz-dialog-request-action 'refresh_language)))")
   (action_tile "bearing_angle" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-number-value 'bearing_angle $value))")
   (action_tile "dim_scale" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-number-value 'dim_scale $value))")
   (action_tile "text_height" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-number-value 'text_height $value))")
