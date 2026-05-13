@@ -4,9 +4,11 @@ SetDimZB : dialog {
   : row {
     : boxed_column {
       label = "Coordinate System";
-      : radio_button { key = "coord_mode_current"; label = "Current Coordinate System"; }
-      : radio_button { key = "coord_mode_world"; label = "World Coordinate System"; }
-      : radio_button { key = "coord_mode_custom"; label = "Custom Coordinate System"; }
+      : radio_column {
+        : radio_button { key = "coord_mode_current"; label = "Current Coordinate System"; }
+        : radio_button { key = "coord_mode_world"; label = "World Coordinate System"; }
+        : radio_button { key = "coord_mode_custom"; label = "Custom Coordinate System"; }
+      }
       : edit_box { key = "base_n"; label = "Base N"; edit_width = 18; }
       : edit_box { key = "base_e"; label = "Base E"; edit_width = 18; }
       : edit_box { key = "rotation"; label = "Rotation"; edit_width = 18; }
@@ -41,10 +43,12 @@ SetDimZB : dialog {
       }
       : boxed_row {
         label = "Prefix";
-        : radio_button { key = "prefix_xy"; label = "XY"; }
-        : radio_button { key = "prefix_ab"; label = "AB"; }
-        : radio_button { key = "prefix_ne"; label = "NE"; }
-        : radio_button { key = "prefix_none"; label = "None"; }
+        : radio_row {
+          : radio_button { key = "prefix_xy"; label = "XY"; }
+          : radio_button { key = "prefix_ab"; label = "AB"; }
+          : radio_button { key = "prefix_ne"; label = "NE"; }
+          : radio_button { key = "prefix_none"; label = "None"; }
+        }
       }
     }
     : boxed_column {
@@ -67,9 +71,8 @@ SetDimZB : dialog {
   spacer;
   : row {
     alignment = centered;
-    children_alignment = centered;
-    : button { key = "accept"; label = "OK"; is_default = true; width = 10; fixed_width = true; }
-    : button { key = "cancel"; label = "Cancel"; is_cancel = true; width = 10; fixed_width = true; }
-    : button { key = "help"; label = "Help"; width = 10; fixed_width = true; }
+    : button { key = "accept"; label = "OK"; is_default = true; width = 8; fixed_width = true; }
+    : button { key = "cancel"; label = "Cancel"; is_cancel = true; width = 8; fixed_width = true; }
+    : button { key = "help"; label = "Help"; width = 8; fixed_width = true; }
   }
 }
