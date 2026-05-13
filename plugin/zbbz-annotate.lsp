@@ -55,27 +55,12 @@
   )
 )
 
-(defun zbbz-annotate-text-anchor-point ( anchor_point text_point / dir gap bearing distance_value radians )
-  (if (zbbz-state-get 'auto_orient)
-    (progn
-      (setq dir (zbbz-annotate-horizontal-direction anchor_point text_point))
-      (setq gap (zbbz-annotate-gap))
-      (if (> dir 0.0)
-        (list (+ (car text_point) gap) (cadr text_point) 0.0)
-        (list (- (car text_point) gap) (cadr text_point) 0.0)
-      )
-    )
-    (progn
-      (setq bearing (zbbz-state-get 'bearing_angle))
-      (setq distance_value (distance anchor_point text_point))
-      (if (= distance_value 0.0)
-        (setq distance_value (* (zbbz-annotate-gap) 2.0)))
-      (setq radians (zbbz-transform-deg-to-rad bearing))
-      (list
-        (+ (car anchor_point) (* distance_value (cos radians)))
-        (+ (cadr anchor_point) (* distance_value (sin radians)))
-        0.0)
-    )
+(defun zbbz-annotate-text-anchor-point ( anchor_point text_point / dir gap )
+  (setq dir (zbbz-annotate-horizontal-direction anchor_point text_point))
+  (setq gap (zbbz-annotate-gap))
+  (if (> dir 0.0)
+    (list (+ (car text_point) gap) (cadr text_point) 0.0)
+    (list (- (car text_point) gap) (cadr text_point) 0.0)
   )
 )
 
