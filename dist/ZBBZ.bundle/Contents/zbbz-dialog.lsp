@@ -746,6 +746,7 @@
         (zbbz-dialog-put (car pair) (cdr pair))))))
 
 (defun zbbz-dialog-request-action (action_code)
+  (zbbz-dialog-save)
   (setq *zbbz-dialog-action* action_code)
   (done_dialog 2))
 
@@ -788,7 +789,7 @@
   (action_tile "pick_bearing" "(zbbz-dialog-request-action 'pick_bearing)")
   (action_tile "export_dat" "(zbbz-dialog-request-action 'export_dat)")
   (action_tile "help" "(zbbz-dialog-request-action 'help)")
-  (action_tile "accept" "(setq *zbbz-dialog-action* 'accept) (done_dialog 1)")
+  (action_tile "accept" "(setq *zbbz-dialog-action* 'accept) (zbbz-dialog-save) (done_dialog 1)")
   (action_tile "cancel" "(done_dialog 0)"))
 
 (defun zbbz-dialog-run-once (/ runtime_dcl_path dialog_id result)
