@@ -127,9 +127,28 @@
       (zbbz-state-save-config)))
   *zbbz-settings*)
 
-(defun zbbz-state-put-many (pairs)
-  (foreach pair pairs
-    (zbbz-state-put (car pair) (cdr pair)))
+(defun zbbz-state-put-many (pairs / item state changed key value pair current_value)
+  (zbbz-state-ensure)
+  (setq changed nil)
+  (foreach item pairs
+    (setq key (car item))
+    (setq value (cdr item))
+    (if (zbbz-state-boolean-key-p key)
+      (setq value (if (zbbz-state-truthy-p value) T nil)))
+    (setq state *zbbz-settings*)
+    (setq pair (assoc key state))
+    (if pair
+      (progn
+        (setq current_value (zbbz-state-assoc-value key state))
+        (if (not (equal current_value value))
+          (progn
+            (setq *zbbz-settings* (subst (cons key value) pair state))
+            (setq changed T))))
+      (progn
+        (setq *zbbz-settings* (append state (list (cons key value))))
+        (setq changed T))))
+  (if changed
+    (zbbz-state-save-config))
   *zbbz-settings*)
 
 (defun zbbz-state-valid-coord-mode-p (value)

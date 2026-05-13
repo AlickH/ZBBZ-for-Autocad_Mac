@@ -615,6 +615,12 @@
   (if value
     (zbbz-state-put key value)))
 
+(defun zbbz-dialog-edit-number-pair (tile key / value)
+  (setq value (distof (get_tile tile) 2))
+  (if value
+    (list (cons key value))
+    nil))
+
 (defun zbbz-dialog-save-behavior-toggles ()
   (zbbz-state-put 'swap_xy (equal (get_tile "swap_xy") "1"))
   (zbbz-state-put 'group_on (equal (get_tile "group_on") "1"))
@@ -630,6 +636,12 @@
   (zbbz-state-put 'dialog_language
     (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
 
+(defun zbbz-dialog-coord-mode-value ()
+  (cond
+    ((equal (get_tile "coord_mode") "coord_world") 'world)
+    ((equal (get_tile "coord_mode") "coord_custom") 'custom)
+    (T 'current)))
+
 (defun zbbz-dialog-save-prefix-mode ()
   (cond
     ((equal (get_tile "prefix_mode") "prefix_ab") (zbbz-state-put 'prefix_mode 'ab))
@@ -637,36 +649,49 @@
     ((equal (get_tile "prefix_mode") "prefix_none") (zbbz-state-put 'prefix_mode 'none))
     (T (zbbz-state-put 'prefix_mode 'xy))))
 
-(defun zbbz-dialog-save-coord-mode ()
+(defun zbbz-dialog-prefix-mode-value ()
   (cond
-    ((equal (get_tile "coord_mode") "coord_world") (zbbz-state-put 'coord_mode 'world))
-    ((equal (get_tile "coord_mode") "coord_custom") (zbbz-state-put 'coord_mode 'custom))
-    (T (zbbz-state-put 'coord_mode 'current))))
+    ((equal (get_tile "prefix_mode") "prefix_ab") 'ab)
+    ((equal (get_tile "prefix_mode") "prefix_ne") 'ne)
+    ((equal (get_tile "prefix_mode") "prefix_none") 'none)
+    (T 'xy)))
 
-(defun zbbz-dialog-save ()
+(defun zbbz-dialog-save-coord-mode ()
+  (zbbz-state-put 'coord_mode (zbbz-dialog-coord-mode-value)))
+
+(defun zbbz-dialog-save (/ precision_index pairs)
   (if (not *zbbz-dialog-initializing*)
     (progn
-      (zbbz-dialog-save-coord-mode)
-      (zbbz-dialog-save-edit-number "base_n" 'base_n)
-      (zbbz-dialog-save-edit-number "base_e" 'base_e)
-      (zbbz-dialog-save-edit-number "rotation" 'rotation)
-      (zbbz-dialog-save-edit-number "arrow_size" 'arrow_size)
-      (zbbz-dialog-save-edit-number "bearing_angle" 'bearing_angle)
-      (zbbz-dialog-save-edit-number "dim_scale" 'dim_scale)
-      (zbbz-dialog-save-edit-number "text_height" 'text_height)
-      (zbbz-dialog-save-behavior-toggles)
-      (zbbz-dialog-save-style-popups)
-      (zbbz-state-put 'background_mask (equal (get_tile "background_mask") "1"))
       (setq precision_index (atoi (get_tile "precision")))
-      (zbbz-state-put 'precision
-        (cond
-          ((= precision_index 0) 3)
-          ((= precision_index 1) 2)
-          ((= precision_index 2) 1)
-          ((= precision_index 3) 0)
-          ((= precision_index 4) 4)
-          (T 3)))
-      (zbbz-dialog-save-prefix-mode))))
+      (setq pairs
+        (append
+          (list
+            (cons 'coord_mode (zbbz-dialog-coord-mode-value))
+            (cons 'swap_xy (equal (get_tile "swap_xy") "1"))
+            (cons 'group_on (equal (get_tile "group_on") "1"))
+            (cons 'auto_orient (equal (get_tile "auto_orient") "1"))
+            (cons 'dim_layer (if (= (atoi (get_tile "dim_layer")) 1) "0" ""))
+            (cons 'arrow_style (if (= (atoi (get_tile "arrow_style")) 1) "none" "triangle"))
+            (cons 'text_style (if (= (atoi (get_tile "text_style")) 1) "Standard" ""))
+            (cons 'dialog_language (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es")))
+            (cons 'background_mask (equal (get_tile "background_mask") "1"))
+            (cons 'precision
+              (cond
+                ((= precision_index 0) 3)
+                ((= precision_index 1) 2)
+                ((= precision_index 2) 1)
+                ((= precision_index 3) 0)
+                ((= precision_index 4) 4)
+                (T 3)))
+            (cons 'prefix_mode (zbbz-dialog-prefix-mode-value)))
+          (zbbz-dialog-edit-number-pair "base_n" 'base_n)
+          (zbbz-dialog-edit-number-pair "base_e" 'base_e)
+          (zbbz-dialog-edit-number-pair "rotation" 'rotation)
+          (zbbz-dialog-edit-number-pair "arrow_size" 'arrow_size)
+          (zbbz-dialog-edit-number-pair "bearing_angle" 'bearing_angle)
+          (zbbz-dialog-edit-number-pair "dim_scale" 'dim_scale)
+          (zbbz-dialog-edit-number-pair "text_height" 'text_height)))
+      (zbbz-state-put-many pairs))))
 
 (defun zbbz-dialog-request-action (action_code)
   (zbbz-dialog-save)
