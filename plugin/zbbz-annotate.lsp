@@ -1,34 +1,24 @@
 (setq *zbbz-created-annotations* nil)
 (setq *zbbz-annotation-seq* 0)
 
-(defun zbbz-annotate-reset-session ()
-  (setq *zbbz-created-annotations* nil)
-  (setq *zbbz-annotation-seq* 0)
-)
-
 (defun zbbz-annotate-next-id ()
   (setq *zbbz-annotation-seq* (+ *zbbz-annotation-seq* 1))
-  *zbbz-annotation-seq*
 )
 
-(defun zbbz-annotate-current-settings ()
-  (zbbz-state-ensure)
-)
-
-(defun zbbz-annotate-layer-name ()
+(defun zbbz-annotate-layer-name ( / layer_name )
   (setq layer_name (zbbz-state-get 'dim_layer))
   (if (= layer_name "")
-    (getvar "CLAYER")
-    layer_name
+    (setq layer_name (getvar "CLAYER"))
   )
+  layer_name
 )
 
-(defun zbbz-annotate-text-style-name ()
+(defun zbbz-annotate-text-style-name ( / style_name )
   (setq style_name (zbbz-state-get 'text_style))
   (if (= style_name "")
-    (getvar "TEXTSTYLE")
-    style_name
+    (setq style_name (getvar "TEXTSTYLE"))
   )
+  style_name
 )
 
 (defun zbbz-annotate-text-height ()
@@ -39,12 +29,12 @@
   (* (zbbz-annotate-text-height) 1.4)
 )
 
-(defun zbbz-annotate-point-output (point)
-  (setq resolved (zbbz-transform-point-by-mode point (zbbz-annotate-current-settings)))
+(defun zbbz-annotate-point-output ( point / resolved )
+  (setq resolved (zbbz-transform-point-by-mode point (zbbz-state-ensure)))
   (list (car resolved) (cadr resolved))
 )
 
-(defun zbbz-annotate-text-lines (point_output)
+(defun zbbz-annotate-text-lines ( point_output )
   (zbbz-format-output-lines
     (car point_output)
     (cadr point_output)
@@ -54,75 +44,53 @@
   )
 )
 
-(defun zbbz-annotate-horizontal-direction (anchor_point text_point)
+(defun zbbz-annotate-horizontal-direction ( anchor_point text_point )
   (if (>= (car text_point) (car anchor_point))
     1.0
     -1.0
   )
 )
 
-(defun zbbz-annotate-text-anchor-point (anchor_point text_point)
+(defun zbbz-annotate-text-anchor-point ( anchor_point text_point / dir gap )
   (setq dir (zbbz-annotate-horizontal-direction anchor_point text_point))
   (setq gap (zbbz-annotate-gap))
-  (list
-    (+ (car text_point) (* dir gap))
-    (cadr text_point)
-    0.0
-  )
+  (list (+ (car text_point) (* dir gap)) (cadr text_point) 0.0)
 )
 
-(defun zbbz-annotate-elbow-point (anchor_point text_anchor)
+(defun zbbz-annotate-elbow-point ( anchor_point text_anchor / dir gap )
   (setq dir (zbbz-annotate-horizontal-direction anchor_point text_anchor))
   (setq gap (zbbz-annotate-gap))
-  (list
-    (- (car text_anchor) (* dir gap 0.8))
-    (cadr text_anchor)
-    0.0
-  )
+  (list (- (car text_anchor) (* dir gap 0.8)) (cadr text_anchor) 0.0)
 )
 
-(defun zbbz-annotate-horizontal-end-point (anchor_point text_anchor)
+(defun zbbz-annotate-horizontal-end-point ( anchor_point text_anchor / dir gap )
   (setq dir (zbbz-annotate-horizontal-direction anchor_point text_anchor))
   (setq gap (zbbz-annotate-gap))
-  (list
-    (+ (car text_anchor) (* dir gap 3.6))
-    (cadr text_anchor)
-    0.0
-  )
+  (list (+ (car text_anchor) (* dir gap 3.6)) (cadr text_anchor) 0.0)
 )
 
-(defun zbbz-annotate-upper-text-point (text_anchor)
+(defun zbbz-annotate-upper-text-point ( text_anchor / gap )
   (setq gap (zbbz-annotate-gap))
-  (list
-    (car text_anchor)
-    (+ (cadr text_anchor) (* gap 0.55))
-    0.0
-  )
+  (list (car text_anchor) (+ (cadr text_anchor) (* gap 0.55)) 0.0)
 )
 
-(defun zbbz-annotate-lower-text-point (text_anchor)
+(defun zbbz-annotate-lower-text-point ( text_anchor / gap )
   (setq gap (zbbz-annotate-gap))
-  (list
-    (car text_anchor)
-    (- (cadr text_anchor) (* gap 0.55))
-    0.0
-  )
+  (list (car text_anchor) (- (cadr text_anchor) (* gap 0.55)) 0.0)
 )
 
-(defun zbbz-annotate-horizontal-mode (anchor_point text_anchor)
+(defun zbbz-annotate-horizontal-mode ( anchor_point text_anchor )
   (if (>= (car text_anchor) (car anchor_point))
     0
     2
   )
 )
 
-(defun zbbz-annotate-ensure-layer (layer_name)
+(defun zbbz-annotate-ensure-layer ( layer_name )
   (if (not (tblsearch "LAYER" layer_name))
-    (entmakex
+    (entmake
       (list
         (cons 0 "LAYER")
-        (cons 100 "AcDbSymbolTableRecord")
-        (cons 100 "AcDbLayerTableRecord")
         (cons 2 layer_name)
         (cons 70 0)
       )
@@ -131,8 +99,8 @@
   layer_name
 )
 
-(defun zbbz-annotate-make-line (start_point end_point layer_name)
-  (entmakex
+(defun zbbz-annotate-make-line ( start_point end_point layer_name )
+  (entmake
     (list
       (cons 0 "LINE")
       (cons 8 layer_name)
@@ -142,8 +110,8 @@
   )
 )
 
-(defun zbbz-annotate-make-text (insert_point text_value layer_name text_style text_height horizontal_mode)
-  (entmakex
+(defun zbbz-annotate-make-text ( insert_point text_value layer_name text_style text_height horizontal_mode )
+  (entmake
     (list
       (cons 0 "TEXT")
       (cons 8 layer_name)
@@ -159,12 +127,12 @@
   )
 )
 
-(defun zbbz-annotate-make-marker (anchor_point layer_name)
+(defun zbbz-annotate-make-marker ( anchor_point layer_name / marker_size p1 p2 p3 )
   (setq marker_size (* (zbbz-annotate-gap) 0.45))
   (setq p1 anchor_point)
   (setq p2 (list (- (car anchor_point) marker_size) (- (cadr anchor_point) marker_size) 0.0))
   (setq p3 (list (+ (car anchor_point) marker_size) (- (cadr anchor_point) marker_size) 0.0))
-  (entmakex
+  (entmake
     (list
       (cons 0 "SOLID")
       (cons 8 layer_name)
@@ -176,32 +144,12 @@
   )
 )
 
-(defun zbbz-annotate-group-record (record_id entities)
-  (if (zbbz-state-get 'group_on')
-    (list
-      (cons 'group_name (strcat "ZBBZ-" (itoa record_id)))
-      (cons 'entities entities)
-    )
-    nil
-  )
-)
-
-(defun zbbz-annotate-filter-entities (entities)
-  (setq result nil)
-  (foreach entity entities
-    (if entity
-      (setq result (append result (list entity)))
-    )
-  )
-  result
-)
-
-(defun zbbz-annotate-store-record (record)
+(defun zbbz-annotate-store-record ( record )
   (setq *zbbz-created-annotations* (append *zbbz-created-annotations* (list record)))
   record
 )
 
-(defun zbbz-annotate-create (anchor_point text_point)
+(defun zbbz-annotate-create ( anchor_point text_point / layer_name text_style point_output text_lines record_id text_anchor elbow_point line_end_point upper_text_point lower_text_point text_height horizontal_mode )
   (setq layer_name (zbbz-annotate-ensure-layer (zbbz-annotate-layer-name)))
   (setq text_style (zbbz-annotate-text-style-name))
   (setq point_output (zbbz-annotate-point-output anchor_point))
@@ -214,41 +162,11 @@
   (setq lower_text_point (zbbz-annotate-lower-text-point text_anchor))
   (setq text_height (zbbz-annotate-text-height))
   (setq horizontal_mode (zbbz-annotate-horizontal-mode anchor_point text_anchor))
-  (setq marker_entity (zbbz-annotate-make-marker anchor_point layer_name))
-  (setq leader_entity_1 (zbbz-annotate-make-line anchor_point elbow_point layer_name))
-  (setq leader_entity_2 (zbbz-annotate-make-line elbow_point line_end_point layer_name))
-  (setq upper_text_entity
-    (zbbz-annotate-make-text
-      upper_text_point
-      (car text_lines)
-      layer_name
-      text_style
-      text_height
-      horizontal_mode
-    )
-  )
-  (setq lower_text_entity
-    (zbbz-annotate-make-text
-      lower_text_point
-      (cadr text_lines)
-      layer_name
-      text_style
-      text_height
-      horizontal_mode
-    )
-  )
-  (setq entity_ids
-    (zbbz-annotate-filter-entities
-      (list
-        marker_entity
-        leader_entity_1
-        leader_entity_2
-        upper_text_entity
-        lower_text_entity
-      )
-    )
-  )
-  (setq group_record (zbbz-annotate-group-record record_id entity_ids))
+  (zbbz-annotate-make-marker anchor_point layer_name)
+  (zbbz-annotate-make-line anchor_point elbow_point layer_name)
+  (zbbz-annotate-make-line elbow_point line_end_point layer_name)
+  (zbbz-annotate-make-text upper_text_point (car text_lines) layer_name text_style text_height horizontal_mode)
+  (zbbz-annotate-make-text lower_text_point (cadr text_lines) layer_name text_style text_height horizontal_mode)
   (zbbz-annotate-store-record
     (list
       (cons 'id record_id)
@@ -262,27 +180,25 @@
       (cons 'dim_scale (zbbz-state-get 'dim_scale))
       (cons 'text_height (zbbz-state-get 'text_height))
       (cons 'layer layer_name)
-      (cons 'entities entity_ids)
-      (cons 'group group_record)
+      (cons 'entities nil)
+      (cons 'group nil)
     )
   )
 )
 
-(defun zbbz-annotate-prompt-text-point (anchor_point)
+(defun zbbz-annotate-prompt-text-point ( anchor_point )
   (getpoint anchor_point "\nPick annotation text location: ")
 )
 
-(defun zbbz-annotate-run-once ()
+(defun zbbz-annotate-run-once ( / anchor_point text_point )
   (setq anchor_point (getpoint "\nPick coordinate point: "))
   (if anchor_point
     (progn
       (setq text_point (zbbz-annotate-prompt-text-point anchor_point))
       (if text_point
         (zbbz-annotate-create anchor_point text_point)
-        nil
       )
     )
-    nil
   )
 )
 
