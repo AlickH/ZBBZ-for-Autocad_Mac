@@ -100,31 +100,39 @@
 )
 
 (defun zbbz-annotate-make-line ( start_point end_point layer_name )
-  (entmake
-    (list
-      (cons 0 "LINE")
-      (cons 8 layer_name)
-      (cons 10 start_point)
-      (cons 11 end_point)
+  (setq result
+    (entmake
+      (list
+        (cons 0 "LINE")
+        (cons 8 layer_name)
+        (cons 10 start_point)
+        (cons 11 end_point)
+      )
     )
   )
+  (if (null result)
+    (prompt "\nZBBZ failed to create LINE.")
+  )
+  result
 )
 
 (defun zbbz-annotate-make-text ( insert_point text_value layer_name text_style text_height horizontal_mode )
-  (entmake
-    (list
-      (cons 0 "TEXT")
-      (cons 8 layer_name)
-      (cons 7 text_style)
-      (cons 10 insert_point)
-      (cons 11 insert_point)
-      (cons 40 text_height)
-      (cons 1 text_value)
-      (cons 50 0.0)
-      (cons 72 horizontal_mode)
-      (cons 73 2)
+  (setq result
+    (entmake
+      (list
+        (cons 0 "TEXT")
+        (cons 8 layer_name)
+        (cons 7 text_style)
+        (cons 10 insert_point)
+        (cons 40 text_height)
+        (cons 1 text_value)
+      )
     )
   )
+  (if (null result)
+    (prompt (strcat "\nZBBZ failed to create TEXT: " text_value))
+  )
+  result
 )
 
 (defun zbbz-annotate-make-marker ( anchor_point layer_name / marker_size p1 p2 p3 )
@@ -132,16 +140,22 @@
   (setq p1 anchor_point)
   (setq p2 (list (- (car anchor_point) marker_size) (- (cadr anchor_point) marker_size) 0.0))
   (setq p3 (list (+ (car anchor_point) marker_size) (- (cadr anchor_point) marker_size) 0.0))
-  (entmake
-    (list
-      (cons 0 "SOLID")
-      (cons 8 layer_name)
-      (cons 10 p1)
-      (cons 11 p2)
-      (cons 12 p3)
-      (cons 13 p3)
+  (setq result
+    (entmake
+      (list
+        (cons 0 "SOLID")
+        (cons 8 layer_name)
+        (cons 10 p1)
+        (cons 11 p2)
+        (cons 12 p3)
+        (cons 13 p3)
+      )
     )
   )
+  (if (null result)
+    (prompt "\nZBBZ failed to create SOLID marker.")
+  )
+  result
 )
 
 (defun zbbz-annotate-store-record ( record )
