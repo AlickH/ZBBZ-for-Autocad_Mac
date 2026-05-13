@@ -3,6 +3,12 @@
 
 (setq *zbbz-dialog-initializing* nil)
 
+(defun zbbz-dialog-lispsys ()
+  (getvar "LISPSYS"))
+
+(defun zbbz-dialog-unicode-supported-p ()
+  (/= (zbbz-dialog-lispsys) 0))
+
 (defun zbbz-dialog-language-source ()
   (strcat
     (if (zbbz-dialog-language-from-plist) (strcase (zbbz-dialog-language-from-plist)) "")
@@ -70,6 +76,7 @@
 
 (defun zbbz-dialog-language-debug-lines ()
   (list
+    (strcat "LISPSYS=" (if (zbbz-dialog-lispsys) (vl-prin1-to-string (zbbz-dialog-lispsys)) "nil"))
     (strcat "PLIST_LANGUAGE=" (if (zbbz-dialog-language-from-plist) (vl-prin1-to-string (zbbz-dialog-language-from-plist)) "nil"))
     (strcat "PLIST_HELP_URL=" (if (zbbz-dialog-help-url-from-plist) (vl-prin1-to-string (zbbz-dialog-help-url-from-plist)) "nil"))
     (strcat "LOCALE=" (if (getvar "LOCALE") (vl-prin1-to-string (getvar "LOCALE")) "nil"))
@@ -131,8 +138,12 @@
 (defun zbbz-dialog-language-key (/ setting)
   (setq setting (zbbz-dialog-language-setting))
   (if (member setting '("en" "zh" "fr" "de" "it" "ja" "ko" "es"))
-    setting
-    (zbbz-dialog-auto-language-key)))
+    (setq setting setting)
+    (setq setting (zbbz-dialog-auto-language-key)))
+  (if (and (not (zbbz-dialog-unicode-supported-p))
+           (member setting '("zh" "ja" "ko")))
+    "en"
+    setting))
 
 (defun zbbz-dialog-language-options (/ ui_language_key)
   (list
