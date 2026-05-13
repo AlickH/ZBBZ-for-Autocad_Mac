@@ -46,4 +46,9 @@
     (prompt "\nZBBZ configuration canceled."))
   (princ))
 
+(defun c:ZBBZLANGDEBUG ()
+  (zbbz-load-all)
+  (zbbz-dialog-print-language-debug)
+  (princ))
+
 (princ)

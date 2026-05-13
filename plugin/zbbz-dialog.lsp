@@ -15,6 +15,20 @@
     "|"
     (if (getenv "APPLELOCALE") (strcase (getenv "APPLELOCALE")) "")))
 
+(defun zbbz-dialog-language-debug-lines ()
+  (list
+    (strcat "LOCALE=" (if (getvar "LOCALE") (vl-prin1-to-string (getvar "LOCALE")) "nil"))
+    (strcat "LANG=" (if (getenv "LANG") (vl-prin1-to-string (getenv "LANG")) "nil"))
+    (strcat "LC_ALL=" (if (getenv "LC_ALL") (vl-prin1-to-string (getenv "LC_ALL")) "nil"))
+    (strcat "LC_MESSAGES=" (if (getenv "LC_MESSAGES") (vl-prin1-to-string (getenv "LC_MESSAGES")) "nil"))
+    (strcat "APPLELOCALE=" (if (getenv "APPLELOCALE") (vl-prin1-to-string (getenv "APPLELOCALE")) "nil"))
+    (strcat "LANGUAGE_SOURCE=" (vl-prin1-to-string (zbbz-dialog-language-source)))
+    (strcat "LANGUAGE_KEY=" (vl-prin1-to-string (zbbz-dialog-language-key)))))
+
+(defun zbbz-dialog-print-language-debug ()
+  (foreach line (zbbz-dialog-language-debug-lines)
+    (prompt (strcat "\n" line))))
+
 (defun zbbz-dialog-language-key (/ language_source)
   (setq language_source (zbbz-dialog-language-source))
   (cond
