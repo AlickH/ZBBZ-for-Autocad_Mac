@@ -43,8 +43,8 @@
   (setq pair (assoc key settings))
   (cond
     ((null pair) nil)
-    ((atom (cdr pair)) (cdr pair))
     ((and (listp pair) (null (cdr pair)) (eq (car pair) key)) T)
+    ((atom (cdr pair)) (cdr pair))
     (T (cdr pair))))
 
 (defun zbbz-state-truthy-p (value)

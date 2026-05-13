@@ -20,7 +20,7 @@
   (setq index 0)
   (setq found nil)
   (while (and (< index (length items)) (null found))
-    (if (= (nth index items) target)
+    (if (equal (nth index items) target)
       (setq found index)
       (setq index (+ index 1))))
   (if found found 0))
