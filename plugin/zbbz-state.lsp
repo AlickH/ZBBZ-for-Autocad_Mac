@@ -110,15 +110,21 @@
 (defun zbbz-state-get (key / pair)
   (zbbz-state-assoc-value key (zbbz-state-ensure)))
 
-(defun zbbz-state-put (key value / state pair)
+(defun zbbz-state-put (key value / state pair current_value)
   (setq state (zbbz-state-ensure))
   (if (zbbz-state-boolean-key-p key)
     (setq value (if (zbbz-state-truthy-p value) T nil)))
   (setq pair (assoc key state))
   (if pair
-    (setq *zbbz-settings* (subst (cons key value) pair state))
-    (setq *zbbz-settings* (append state (list (cons key value)))))
-  (zbbz-state-save-config)
+    (progn
+      (setq current_value (zbbz-state-assoc-value key state))
+      (if (not (equal current_value value))
+        (progn
+          (setq *zbbz-settings* (subst (cons key value) pair state))
+          (zbbz-state-save-config))))
+    (progn
+      (setq *zbbz-settings* (append state (list (cons key value))))
+      (zbbz-state-save-config)))
   *zbbz-settings*)
 
 (defun zbbz-state-put-many (pairs)
