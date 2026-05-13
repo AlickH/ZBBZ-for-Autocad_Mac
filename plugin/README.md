@@ -6,7 +6,9 @@ Mac-native rebuild of the evidenced coordinate annotation feature set from the W
 
 - Target: AutoCAD for Mac current versions
 - Stack: AutoLISP + DCL
-- Main command: `ZBBZ`
+- Main commands:
+  - `ZBBZ` starts coordinate annotation using the current saved configuration
+  - `ZBBZCONFIG` opens the settings dialog and saves configuration changes
 
 ## Current Files
 
@@ -42,7 +44,7 @@ Mac-native rebuild of the evidenced coordinate annotation feature set from the W
 ## Loading
 
 1. Load `plugin/zbbz-mac.lsp` in AutoCAD for Mac.
-2. Run `ZBBZ`.
+2. Run `ZBBZ` to annotate directly, or `ZBBZCONFIG` to edit settings.
 
 ## Status
 

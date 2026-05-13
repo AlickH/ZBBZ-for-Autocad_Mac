@@ -33,11 +33,17 @@
   (zbbz-load-all)
   (zbbz-state-ensure)
   (prompt "\nZBBZ command started.")
+  (zbbz-annotate-run-loop)
+  (princ))
+
+(defun c:ZBBZCONFIG ()
+  (zbbz-load-all)
+  (zbbz-state-ensure)
+  (prompt "\nZBBZCONFIG command started.")
   (if (zbbz-dialog-open-loop)
     (progn
-      (prompt "\nZBBZ dialog opened successfully.")
-      (zbbz-annotate-run-loop))
-    (prompt "\nZBBZ dialog canceled."))
+      (prompt "\nZBBZ configuration saved."))
+    (prompt "\nZBBZ configuration canceled."))
   (princ))
 
 (princ)
