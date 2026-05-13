@@ -293,8 +293,7 @@
         (cons "Dialog Language" "界面语言")
         (cons "Generate DAT File" "导出 DAT 文件")
         (cons "OK" "确定")
-        (cons "Cancel" "取消")
-        (cons "Help" "帮助")))
+        (cons "Cancel" "取消")))
     ((= language_key "fr")
       (list
         (cons "ZBBZ Coordinate Annotation Settings" "Parametres d'annotation de coordonnees ZBBZ")
@@ -332,8 +331,7 @@
         (cons "Dialog Language" "Langue de l'interface")
         (cons "Generate DAT File" "Generer le fichier DAT")
         (cons "OK" "OK")
-        (cons "Cancel" "Annuler")
-        (cons "Help" "Aide")))
+        (cons "Cancel" "Annuler")))
     ((= language_key "de")
       (list
         (cons "ZBBZ Coordinate Annotation Settings" "ZBBZ-Koordinatenbeschriftungseinstellungen")
@@ -371,8 +369,7 @@
         (cons "Dialog Language" "Dialogs Sprache")
         (cons "Generate DAT File" "DAT-Datei erzeugen")
         (cons "OK" "OK")
-        (cons "Cancel" "Abbrechen")
-        (cons "Help" "Hilfe")))
+        (cons "Cancel" "Abbrechen")))
     ((= language_key "it")
       (list
         (cons "ZBBZ Coordinate Annotation Settings" "Impostazioni annotazione coordinate ZBBZ")
@@ -410,8 +407,7 @@
         (cons "Dialog Language" "Lingua finestra")
         (cons "Generate DAT File" "Genera file DAT")
         (cons "OK" "OK")
-        (cons "Cancel" "Annulla")
-        (cons "Help" "Aiuto")))
+        (cons "Cancel" "Annulla")))
     ((= language_key "ja")
       (list
         (cons "ZBBZ Coordinate Annotation Settings" "ZBBZ 座標注記設定")
@@ -449,8 +445,7 @@
         (cons "Dialog Language" "ダイアログ言語")
         (cons "Generate DAT File" "DAT ファイルを生成")
         (cons "OK" "OK")
-        (cons "Cancel" "キャンセル")
-        (cons "Help" "ヘルプ")))
+        (cons "Cancel" "キャンセル")))
     ((= language_key "ko")
       (list
         (cons "ZBBZ Coordinate Annotation Settings" "ZBBZ 좌표 주석 설정")
@@ -488,8 +483,7 @@
         (cons "Dialog Language" "대화상자 언어")
         (cons "Generate DAT File" "DAT 파일 생성")
         (cons "OK" "확인")
-        (cons "Cancel" "취소")
-        (cons "Help" "도움말")))
+        (cons "Cancel" "취소")))
     ((= language_key "es")
       (list
         (cons "ZBBZ Coordinate Annotation Settings" "Configuracion de anotacion de coordenadas ZBBZ")
@@ -527,8 +521,7 @@
         (cons "Dialog Language" "Idioma del panel")
         (cons "Generate DAT File" "Generar archivo DAT")
         (cons "OK" "Aceptar")
-        (cons "Cancel" "Cancelar")
-        (cons "Help" "Ayuda")))
+        (cons "Cancel" "Cancelar")))
     (T nil)))
 
 (defun zbbz-dialog-sorted-translation-pairs ()
@@ -761,7 +754,6 @@
   (action_tile "draw_grid" "(zbbz-dialog-request-action 'draw_grid)")
   (action_tile "pick_bearing" "(zbbz-dialog-request-action 'pick_bearing)")
   (action_tile "export_dat" "(zbbz-dialog-request-action 'export_dat)")
-  (action_tile "help" "(zbbz-dialog-request-action 'help)")
   (action_tile "accept" "(setq *zbbz-dialog-action* 'accept) (done_dialog 1)")
   (action_tile "cancel" "(done_dialog 0)"))
 
@@ -836,10 +828,6 @@
             (zbbz-dialog-commit-session)
             (zbbz-dialog-end-session)
             (zbbz-dat-export-session))
-          ((eq action_value 'help)
-            (zbbz-dialog-commit-session)
-            (zbbz-dialog-end-session)
-            (zbbz-help-show))
           (T
             (zbbz-dialog-end-session)
             (setq action_value nil)

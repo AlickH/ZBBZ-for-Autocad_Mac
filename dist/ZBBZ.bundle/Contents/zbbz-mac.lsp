@@ -27,7 +27,6 @@
   (zbbz-load-module "zbbz-pick.lsp")
   (zbbz-load-module "zbbz-grid.lsp")
   (zbbz-load-module "zbbz-dat.lsp")
-  (zbbz-load-module "zbbz-help.lsp")
   (zbbz-load-module "zbbz-dialog.lsp")
   (zbbz-load-module "zbbz-annotate.lsp"))
 
