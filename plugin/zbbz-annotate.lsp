@@ -163,6 +163,16 @@
   record
 )
 
+(defun zbbz-annotate-point-string (point)
+  (strcat
+    "("
+    (rtos (car point) 2 3)
+    ", "
+    (rtos (cadr point) 2 3)
+    ")"
+  )
+)
+
 (defun zbbz-annotate-create ( anchor_point text_point / layer_name text_style point_output text_lines record_id text_anchor elbow_point line_end_point upper_text_point lower_text_point text_height horizontal_mode )
   (setq layer_name (zbbz-annotate-ensure-layer (zbbz-annotate-layer-name)))
   (setq text_style (zbbz-annotate-text-style-name))
@@ -176,6 +186,12 @@
   (setq lower_text_point (zbbz-annotate-lower-text-point text_anchor))
   (setq text_height (zbbz-annotate-text-height))
   (setq horizontal_mode (zbbz-annotate-horizontal-mode anchor_point text_anchor))
+  (prompt (strcat "\nZBBZ layer=" layer_name))
+  (prompt (strcat "\nZBBZ text style=" text_style))
+  (prompt (strcat "\nZBBZ text height=" (rtos text_height 2 3)))
+  (prompt (strcat "\nZBBZ anchor=" (zbbz-annotate-point-string anchor_point)))
+  (prompt (strcat "\nZBBZ upper text point=" (zbbz-annotate-point-string upper_text_point)))
+  (prompt (strcat "\nZBBZ lower text point=" (zbbz-annotate-point-string lower_text_point)))
   (zbbz-annotate-make-marker anchor_point layer_name)
   (zbbz-annotate-make-line anchor_point elbow_point layer_name)
   (zbbz-annotate-make-line elbow_point line_end_point layer_name)
