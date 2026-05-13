@@ -2,7 +2,6 @@
   (if value "1" "0"))
 
 (setq *zbbz-dialog-initializing* nil)
-(setq *zbbz-dialog-pending-save-pairs* nil)
 
 (defun zbbz-dialog-lispsys ()
   (getvar "LISPSYS"))
@@ -689,7 +688,7 @@
 (defun zbbz-dialog-save-coord-mode ()
   (zbbz-state-put 'coord_mode (zbbz-dialog-coord-mode-value)))
 
-(defun zbbz-dialog-capture-save-pairs (/ pairs)
+(defun zbbz-dialog-save (/ pairs)
   (if (not *zbbz-dialog-initializing*)
     (progn
       (setq pairs
@@ -713,21 +712,9 @@
           (zbbz-dialog-edit-number-pair "bearing_angle" 'bearing_angle)
           (zbbz-dialog-edit-number-pair "dim_scale" 'dim_scale)
           (zbbz-dialog-edit-number-pair "text_height" 'text_height)))
-      (setq *zbbz-dialog-pending-save-pairs* pairs)
-      pairs)))
-
-(defun zbbz-dialog-flush-pending-save ()
-  (if *zbbz-dialog-pending-save-pairs*
-    (progn
-      (zbbz-state-put-many *zbbz-dialog-pending-save-pairs*)
-      (setq *zbbz-dialog-pending-save-pairs* nil))))
-
-(defun zbbz-dialog-save ()
-  (zbbz-dialog-capture-save-pairs)
-  (zbbz-dialog-flush-pending-save))
+      (zbbz-state-put-many pairs))))
 
 (defun zbbz-dialog-request-action (action_code)
-  (zbbz-dialog-capture-save-pairs)
   (setq *zbbz-dialog-action* action_code)
   (done_dialog 2))
 
@@ -765,7 +752,7 @@
   (action_tile "pick_bearing" "(zbbz-dialog-request-action 'pick_bearing)")
   (action_tile "export_dat" "(zbbz-dialog-request-action 'export_dat)")
   (action_tile "help" "(zbbz-dialog-request-action 'help)")
-  (action_tile "accept" "(setq *zbbz-dialog-action* 'accept) (zbbz-dialog-capture-save-pairs) (done_dialog 1)")
+  (action_tile "accept" "(setq *zbbz-dialog-action* 'accept) (done_dialog 1)")
   (action_tile "cancel" "(done_dialog 0)"))
 
 (defun zbbz-dialog-run-once (/ runtime_dcl_path dialog_id result)
@@ -787,14 +774,12 @@
               (setq result 0))
             (progn
               (setq *zbbz-dialog-action* 'accept)
-              (setq *zbbz-dialog-pending-save-pairs* nil)
               (zbbz-dialog-populate)
               (zbbz-dialog-bind-actions)
               (setq result (start_dialog))))
+          (if (/= result 0)
+            (zbbz-dialog-save))
           (unload_dialog dialog_id)
-          (if (= result 0)
-            (setq *zbbz-dialog-pending-save-pairs* nil)
-            (zbbz-dialog-flush-pending-save))
           (list result *zbbz-dialog-action*))))))
 
 (defun zbbz-dialog-open-loop (/ dialog_result dialog_code action_value bearing_angle calibration)
