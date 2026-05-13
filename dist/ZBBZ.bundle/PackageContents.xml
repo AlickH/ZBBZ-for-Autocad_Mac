@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage
+  SchemaVersion="1.0"
+  AppVersion="1.0.0"
+  ProductCode="{9D0C6F81-9E25-4F3F-A41E-76E32B6B3C2F}"
+  UpgradeCode="{E8A29E29-7F12-43F7-913C-E95E19A93D33}"
+  Name="ZBBZ Coordinate Annotation"
+  Description="Coordinate annotation tools for AutoCAD for Mac.">
+  <CompanyDetails
+    Name="ZBBZ"
+    Email="support@example.com"/>
+  <Components>
+    <RuntimeRequirements
+      OS="Mac"
+      Platform="AutoCAD*"
+      SupportPath="./Contents"/>
+    <ComponentEntry
+      AppName="ZBBZ"
+      AppDescription="Coordinate annotation commands"
+      ModuleName="./Contents/zbbz-mac.lsp"
+      AppType="Lisp"
+      LoadReasons="LoadOnCommandInvocation">
+      <Commands GroupName="ZBBZ">
+        <Command Global="ZBBZ" Local="ZBBZ"/>
+        <Command Global="ZBBZCONFIG" Local="ZBBZCONFIG"/>
+      </Commands>
+    </ComponentEntry>
+  </Components>
+</ApplicationPackage>
