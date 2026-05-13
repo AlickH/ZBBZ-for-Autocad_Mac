@@ -135,25 +135,15 @@
     (zbbz-dialog-auto-language-key)))
 
 (defun zbbz-dialog-language-options (/ ui_language_key)
-  (setq ui_language_key (zbbz-dialog-language-key))
   (list
-    (cons "cad"
-      (cond
-        ((= ui_language_key "zh") "跟随 AutoCAD")
-        ((= ui_language_key "fr") "Suivre AutoCAD")
-        ((= ui_language_key "de") "AutoCAD folgen")
-        ((= ui_language_key "it") "Segui AutoCAD")
-        ((= ui_language_key "ja") "AutoCAD に従う")
-        ((= ui_language_key "ko") "AutoCAD 따르기")
-        ((= ui_language_key "es") "Seguir AutoCAD")
-        (T "Follow AutoCAD")))
+    (cons "cad" "Follow AutoCAD")
     (cons "en" "English")
-    (cons "zh" "简体中文 (Chinese, Simplified)")
+    (cons "zh" "Chinese, Simplified")
     (cons "fr" "francais (French)")
     (cons "de" "Deutsch (German)")
     (cons "it" "italiano (Italian)")
-    (cons "ja" "日本語 (Japanese)")
-    (cons "ko" "한국어 (Korean)")
+    (cons "ja" "Japanese")
+    (cons "ko" "Korean")
     (cons "es" "espanol (Spanish)")))
 
 (defun zbbz-dialog-language-list-string (/ options list_string)
