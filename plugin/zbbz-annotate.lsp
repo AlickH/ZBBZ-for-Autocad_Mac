@@ -1,14 +1,8 @@
 (setq *zbbz-created-annotations* nil)
 (setq *zbbz-annotation-seq* 0)
-(setq *zbbz-group-seq* 0)
 
 (defun zbbz-annotate-next-id ()
   (setq *zbbz-annotation-seq* (+ *zbbz-annotation-seq* 1))
-)
-
-(defun zbbz-annotate-next-group-name ()
-  (setq *zbbz-group-seq* (+ *zbbz-group-seq* 1))
-  (strcat "ZBBZ_GROUP_" (itoa *zbbz-group-seq*))
 )
 
 (defun zbbz-annotate-layer-name ( / layer_name )
@@ -185,35 +179,6 @@
   record
 )
 
-(defun zbbz-annotate-last-entity-name ()
-  (entlast)
-)
-
-(defun zbbz-annotate-build-entity-list (names)
-  (setq result nil)
-  (foreach name names
-    (if name
-      (setq result (append result (list name)))
-    )
-  )
-  result
-)
-
-(defun zbbz-annotate-create-group (entity_names / group_name)
-  (if (and (zbbz-state-get 'group_on') entity_names)
-    (progn
-      (setq group_name (zbbz-annotate-next-group-name))
-      (command "_.-GROUP" "_C" group_name "" )
-      (foreach entity_name entity_names
-        (command entity_name)
-      )
-      (command "")
-      group_name
-    )
-    nil
-  )
-)
-
 (defun zbbz-annotate-point-string (point)
   (strcat
     "("
@@ -248,21 +213,10 @@
   (prompt (strcat "\nZBBZ text line 1=" (car text_lines)))
   (prompt (strcat "\nZBBZ text line 2=" (cadr text_lines)))
   (zbbz-annotate-make-marker anchor_point layer_name)
-  (setq marker_entity (zbbz-annotate-last-entity-name))
   (zbbz-annotate-make-line anchor_point elbow_point layer_name)
-  (setq line_entity_1 (zbbz-annotate-last-entity-name))
   (zbbz-annotate-make-line elbow_point line_end_point layer_name)
-  (setq line_entity_2 (zbbz-annotate-last-entity-name))
   (zbbz-annotate-make-text upper_text_point (car text_lines) layer_name text_style text_height horizontal_mode)
-  (setq text_entity_1 (zbbz-annotate-last-entity-name))
   (zbbz-annotate-make-text lower_text_point (cadr text_lines) layer_name text_style text_height horizontal_mode)
-  (setq text_entity_2 (zbbz-annotate-last-entity-name))
-  (setq entity_names
-    (zbbz-annotate-build-entity-list
-      (list marker_entity line_entity_1 line_entity_2 text_entity_1 text_entity_2)
-    )
-  )
-  (setq group_name (zbbz-annotate-create-group entity_names))
   (zbbz-annotate-store-record
     (list
       (cons 'id record_id)
@@ -276,8 +230,8 @@
       (cons 'dim_scale (zbbz-state-get 'dim_scale))
       (cons 'text_height (zbbz-state-get 'text_height))
       (cons 'layer layer_name)
-      (cons 'entities entity_names)
-      (cons 'group group_name)
+      (cons 'entities nil)
+      (cons 'group nil)
     )
   )
 )
