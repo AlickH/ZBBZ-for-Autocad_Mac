@@ -85,8 +85,7 @@
     (strcat "LC_MESSAGES=" (if (getenv "LC_MESSAGES") (vl-prin1-to-string (getenv "LC_MESSAGES")) "nil"))
     (strcat "APPLELOCALE=" (if (getenv "APPLELOCALE") (vl-prin1-to-string (getenv "APPLELOCALE")) "nil"))
     (strcat "LANGUAGE_SOURCE=" (vl-prin1-to-string (zbbz-dialog-language-source)))
-    (strcat "LANGUAGE_KEY=" (vl-prin1-to-string (zbbz-dialog-language-key)))
-    (strcat "DCL_LANGUAGE_KEY=" (vl-prin1-to-string (zbbz-dialog-dcl-language-key)))))
+    (strcat "LANGUAGE_KEY=" (vl-prin1-to-string (zbbz-dialog-language-key)))))
 
 (defun zbbz-dialog-print-language-debug ()
   (foreach line (zbbz-dialog-language-debug-lines)
@@ -141,16 +140,7 @@
   (if (member setting '("en" "zh" "fr" "de" "it" "ja" "ko" "es"))
     (setq setting setting)
     (setq setting (zbbz-dialog-auto-language-key)))
-  (if (and (not (zbbz-dialog-unicode-supported-p))
-           (member setting '("zh" "ja" "ko")))
-    "en"
-    setting))
-
-(defun zbbz-dialog-dcl-language-key (/ language_key)
-  (setq language_key (zbbz-dialog-language-key))
-  (if (member language_key '("zh" "ja" "ko"))
-    "en"
-    language_key))
+  setting)
 
 (defun zbbz-dialog-language-options (/ ui_language_key)
   (list
@@ -185,7 +175,7 @@
   (itoa found_index))
 
 (defun zbbz-dialog-translation-pairs (/ language_key)
-  (setq language_key (zbbz-dialog-dcl-language-key))
+  (setq language_key (zbbz-dialog-language-key))
   (cond
     ((= language_key "zh")
       (list
@@ -559,7 +549,7 @@
 
 (defun zbbz-dialog-write-runtime-dcl (/ source target line)
   (setq source (open (zbbz-plugin-path "zbbz.dcl") "r"))
-  (setq target (open (zbbz-dialog-runtime-dcl-path) "w"))
+  (setq target (open (zbbz-dialog-runtime-dcl-path) "w" "utf8-bom"))
   (if (and source target)
     (progn
       (while (setq line (read-line source))
