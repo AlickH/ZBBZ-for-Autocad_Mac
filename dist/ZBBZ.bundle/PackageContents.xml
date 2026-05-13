@@ -18,8 +18,9 @@
       AppName="ZBBZ"
       AppDescription="Coordinate annotation commands"
       ModuleName="./Contents/zbbz-mac.lsp"
-      AppType="Lisp"
-      LoadReasons="LoadOnCommandInvocation">
+      PerDocument="True"
+      LoadOnAutoCADStartup="True"
+      LoadOnAppearance="True">
       <Commands GroupName="ZBBZ">
         <Command Global="ZBBZ" Local="ZBBZ"/>
         <Command Global="ZBBZCONFIG" Local="ZBBZCONFIG"/>
