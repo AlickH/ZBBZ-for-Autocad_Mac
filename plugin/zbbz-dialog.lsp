@@ -636,6 +636,35 @@
   (zbbz-state-put 'dialog_language
     (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
 
+(defun zbbz-dialog-save-dim-layer ()
+  (zbbz-state-put 'dim_layer
+    (if (= (atoi (get_tile "dim_layer")) 1) "0" "")))
+
+(defun zbbz-dialog-save-arrow-style ()
+  (zbbz-state-put 'arrow_style
+    (if (= (atoi (get_tile "arrow_style")) 1) "none" "triangle")))
+
+(defun zbbz-dialog-save-text-style ()
+  (zbbz-state-put 'text_style
+    (if (= (atoi (get_tile "text_style")) 1) "Standard" "")))
+
+(defun zbbz-dialog-precision-value (/ precision_index)
+  (setq precision_index (atoi (get_tile "precision")))
+  (cond
+    ((= precision_index 0) 3)
+    ((= precision_index 1) 2)
+    ((= precision_index 2) 1)
+    ((= precision_index 3) 0)
+    ((= precision_index 4) 4)
+    (T 3)))
+
+(defun zbbz-dialog-save-precision ()
+  (zbbz-state-put 'precision (zbbz-dialog-precision-value)))
+
+(defun zbbz-dialog-save-language ()
+  (zbbz-state-put 'dialog_language
+    (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
+
 (defun zbbz-dialog-coord-mode-value ()
   (cond
     ((equal (get_tile "coord_mode") "coord_world") 'world)
@@ -659,10 +688,9 @@
 (defun zbbz-dialog-save-coord-mode ()
   (zbbz-state-put 'coord_mode (zbbz-dialog-coord-mode-value)))
 
-(defun zbbz-dialog-save (/ precision_index pairs)
+(defun zbbz-dialog-save (/ pairs)
   (if (not *zbbz-dialog-initializing*)
     (progn
-      (setq precision_index (atoi (get_tile "precision")))
       (setq pairs
         (append
           (list
@@ -675,14 +703,7 @@
             (cons 'text_style (if (= (atoi (get_tile "text_style")) 1) "Standard" ""))
             (cons 'dialog_language (nth (atoi (get_tile "dialog_language")) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es")))
             (cons 'background_mask (equal (get_tile "background_mask") "1"))
-            (cons 'precision
-              (cond
-                ((= precision_index 0) 3)
-                ((= precision_index 1) 2)
-                ((= precision_index 2) 1)
-                ((= precision_index 3) 0)
-                ((= precision_index 4) 4)
-                (T 3)))
+            (cons 'precision (zbbz-dialog-precision-value))
             (cons 'prefix_mode (zbbz-dialog-prefix-mode-value)))
           (zbbz-dialog-edit-number-pair "base_n" 'base_n)
           (zbbz-dialog-edit-number-pair "base_e" 'base_e)
@@ -694,33 +715,44 @@
       (zbbz-state-put-many pairs))))
 
 (defun zbbz-dialog-request-action (action_code)
-  (zbbz-dialog-save)
   (setq *zbbz-dialog-action* action_code)
   (done_dialog 2))
 
-(defun zbbz-dialog-handle-apply-base-angle ()
-  (zbbz-dialog-save)
-  (zbbz-state-apply-base-angle
-    (zbbz-state-get 'base_n)
-    (zbbz-state-get 'base_e)
-    (zbbz-state-get 'rotation))
-  (zbbz-dialog-populate))
+(defun zbbz-dialog-handle-apply-base-angle (/ base_n base_e rotation)
+  (setq base_n (distof (get_tile "base_n") 2))
+  (setq base_e (distof (get_tile "base_e") 2))
+  (setq rotation (distof (get_tile "rotation") 2))
+  (if (and base_n base_e rotation)
+    (progn
+      (zbbz-state-apply-base-angle base_n base_e rotation)
+      (zbbz-dialog-populate))))
 
 (defun zbbz-dialog-bind-actions ()
   (action_tile "coord_mode" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-coord-mode) (zbbz-dialog-update-custom-input-state)))")
+  (action_tile "base_n" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"base_n\" 'base_n))")
+  (action_tile "base_e" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"base_e\" 'base_e))")
+  (action_tile "rotation" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"rotation\" 'rotation))")
   (action_tile "swap_xy" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-behavior-toggles) (zbbz-dialog-sync-preview)))")
   (action_tile "group_on" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-behavior-toggles))")
   (action_tile "auto_orient" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-behavior-toggles))")
   (action_tile "background_mask" "(if (not *zbbz-dialog-initializing*) (zbbz-state-put 'background_mask (equal $value \"1\")))")
   (action_tile "prefix_mode" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-prefix-mode) (zbbz-dialog-sync-preview)))")
-  (action_tile "dialog_language" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-request-action 'refresh_language))")
+  (action_tile "dim_layer" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-dim-layer))")
+  (action_tile "arrow_style" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-arrow-style))")
+  (action_tile "arrow_size" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"arrow_size\" 'arrow_size))")
+  (action_tile "text_style" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-text-style))")
+  (action_tile "precision" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-precision) (zbbz-dialog-sync-preview)))")
+  (action_tile "dialog_language" "(if (not *zbbz-dialog-initializing*) (progn (zbbz-dialog-save-language) (zbbz-dialog-request-action 'refresh_language)))")
+  (action_tile "bearing_angle" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"bearing_angle\" 'bearing_angle))")
+  (action_tile "dim_scale" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"dim_scale\" 'dim_scale))")
+  (action_tile "text_height" "(if (not *zbbz-dialog-initializing*) (zbbz-dialog-save-edit-number \"text_height\" 'text_height))")
   (action_tile "apply_base_angle" "(zbbz-dialog-handle-apply-base-angle)")
   (action_tile "pick_two_points" "(zbbz-dialog-request-action 'pick_two_points)")
   (action_tile "draw_grid" "(zbbz-dialog-request-action 'draw_grid)")
   (action_tile "pick_bearing" "(zbbz-dialog-request-action 'pick_bearing)")
   (action_tile "export_dat" "(zbbz-dialog-request-action 'export_dat)")
   (action_tile "help" "(zbbz-dialog-request-action 'help)")
-  (action_tile "accept" "(setq *zbbz-dialog-action* 'accept) (zbbz-dialog-save) (done_dialog 1)")
+  (action_tile "accept" "(setq *zbbz-dialog-action* 'accept) (done_dialog 1)")
   (action_tile "cancel" "(done_dialog 0)"))
 
 (defun zbbz-dialog-run-once (/ runtime_dcl_path dialog_id result)
