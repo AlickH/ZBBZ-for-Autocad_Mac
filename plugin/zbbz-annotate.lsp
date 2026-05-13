@@ -7,8 +7,8 @@
 
 (defun zbbz-annotate-layer-name ( / layer_name )
   (setq layer_name (zbbz-state-get 'dim_layer))
-  (if (= layer_name "")
-    (setq layer_name (getvar "CLAYER"))
+  (if (or (= layer_name "") (= layer_name "*CURRENT*"))
+    (setq layer_name "ZBBZ_ANNOT")
   )
   layer_name
 )
@@ -91,7 +91,10 @@
     (entmake
       (list
         (cons 0 "LAYER")
+        (cons 100 "AcDbSymbolTableRecord")
+        (cons 100 "AcDbLayerTableRecord")
         (cons 2 layer_name)
+        (cons 62 1)
         (cons 70 0)
       )
     )
