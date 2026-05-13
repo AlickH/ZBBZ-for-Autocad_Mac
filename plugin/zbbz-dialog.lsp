@@ -5,6 +5,7 @@
 
 (defun zbbz-dialog-debug-prompt (text)
   (prompt (strcat "\nZBBZDIALOG " text))
+  (zbbz-debug-log (strcat "ZBBZDIALOG " text))
 )
 
 (defun zbbz-dialog-set-popup-items (key items / index)

@@ -7,6 +7,7 @@
 
 (defun zbbz-state-debug-prompt (text)
   (prompt (strcat "\nZBBZSTATE " text))
+  (zbbz-debug-log (strcat "ZBBZSTATE " text))
 )
 
 (defun zbbz-state-debug-value (label value)

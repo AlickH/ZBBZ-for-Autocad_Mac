@@ -4,6 +4,24 @@
 (defun zbbz-plugin-path (name)
   (strcat *zbbz-plugin-root* name))
 
+(defun zbbz-debug-log-path ()
+  (zbbz-plugin-path "zbbz-debug.log"))
+
+(defun zbbz-debug-log (message / file_handle)
+  (setq file_handle (open (zbbz-debug-log-path) "a"))
+  (if file_handle
+    (progn
+      (write-line message file_handle)
+      (close file_handle)
+      T)
+    nil))
+
+(defun zbbz-debug-clear ()
+  (setq file_handle (open (zbbz-debug-log-path) "w"))
+  (if file_handle
+    (close file_handle))
+  (zbbz-debug-log "=== ZBBZ DEBUG START ==="))
+
 (defun zbbz-load-module (name / path)
   (setq path (zbbz-plugin-path name))
   (if (findfile path)
@@ -25,6 +43,8 @@
 
 (defun c:ZBBZ ()
   (zbbz-load-all)
+  (zbbz-debug-clear)
+  (zbbz-debug-log "COMMAND ZBBZ")
   (zbbz-state-ensure)
   (prompt "\nZBBZ command started.")
   (zbbz-annotate-run-loop)
@@ -32,6 +52,8 @@
 
 (defun c:ZBBZCONFIG ()
   (zbbz-load-all)
+  (zbbz-debug-clear)
+  (zbbz-debug-log "COMMAND ZBBZCONFIG")
   (zbbz-state-ensure)
   (prompt "\nZBBZCONFIG command started.")
   (if (zbbz-dialog-open-loop)
