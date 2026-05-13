@@ -31,6 +31,14 @@
   )
 )
 
+(defun zbbz-annotate-text-height ()
+  (* (zbbz-state-get 'text_height) (zbbz-state-get 'dim_scale))
+)
+
+(defun zbbz-annotate-gap ()
+  (* (zbbz-annotate-text-height) 1.4)
+)
+
 (defun zbbz-annotate-point-output (point)
   (setq resolved (zbbz-transform-point-by-mode point (zbbz-annotate-current-settings)))
   (list (car resolved) (cadr resolved))
@@ -46,26 +54,65 @@
   )
 )
 
-(defun zbbz-annotate-mtext-string (lines)
-  (strcat (car lines) "\\P" (cadr lines))
-)
-
-(defun zbbz-annotate-angle-between (from_point to_point)
-  (angle from_point to_point)
-)
-
-(defun zbbz-annotate-readable-angle (from_point to_point)
-  (setq raw_angle (zbbz-annotate-angle-between from_point to_point))
-  (if (and (> raw_angle (/ pi 2.0)) (< raw_angle (* pi 1.5)))
-    (+ raw_angle pi)
-    raw_angle
+(defun zbbz-annotate-horizontal-direction (anchor_point text_point)
+  (if (>= (car text_point) (car anchor_point))
+    1.0
+    -1.0
   )
 )
 
-(defun zbbz-annotate-text-angle (anchor_point text_point)
-  (if (zbbz-state-get 'auto_orient)
-    (zbbz-annotate-readable-angle anchor_point text_point)
-    (zbbz-annotate-angle-between anchor_point text_point)
+(defun zbbz-annotate-text-anchor-point (anchor_point text_point)
+  (setq dir (zbbz-annotate-horizontal-direction anchor_point text_point))
+  (setq gap (zbbz-annotate-gap))
+  (list
+    (+ (car text_point) (* dir gap))
+    (cadr text_point)
+    0.0
+  )
+)
+
+(defun zbbz-annotate-elbow-point (anchor_point text_anchor)
+  (setq dir (zbbz-annotate-horizontal-direction anchor_point text_anchor))
+  (setq gap (zbbz-annotate-gap))
+  (list
+    (- (car text_anchor) (* dir gap 0.8))
+    (cadr text_anchor)
+    0.0
+  )
+)
+
+(defun zbbz-annotate-horizontal-end-point (anchor_point text_anchor)
+  (setq dir (zbbz-annotate-horizontal-direction anchor_point text_anchor))
+  (setq gap (zbbz-annotate-gap))
+  (list
+    (+ (car text_anchor) (* dir gap 3.6))
+    (cadr text_anchor)
+    0.0
+  )
+)
+
+(defun zbbz-annotate-upper-text-point (text_anchor)
+  (setq gap (zbbz-annotate-gap))
+  (list
+    (car text_anchor)
+    (+ (cadr text_anchor) (* gap 0.55))
+    0.0
+  )
+)
+
+(defun zbbz-annotate-lower-text-point (text_anchor)
+  (setq gap (zbbz-annotate-gap))
+  (list
+    (car text_anchor)
+    (- (cadr text_anchor) (* gap 0.55))
+    0.0
+  )
+)
+
+(defun zbbz-annotate-horizontal-mode (anchor_point text_anchor)
+  (if (>= (car text_anchor) (car anchor_point))
+    0
+    2
   )
 )
 
@@ -95,19 +142,58 @@
   )
 )
 
-(defun zbbz-annotate-make-mtext (insert_point text_value layer_name text_style text_height rotation)
+(defun zbbz-annotate-make-text (insert_point text_value layer_name text_style text_height horizontal_mode)
   (entmakex
     (list
-      (cons 0 "MTEXT")
+      (cons 0 "TEXT")
       (cons 8 layer_name)
       (cons 7 text_style)
       (cons 10 insert_point)
+      (cons 11 insert_point)
       (cons 40 text_height)
-      (cons 41 (* text_height 12.0))
-      (cons 50 rotation)
       (cons 1 text_value)
+      (cons 50 0.0)
+      (cons 72 horizontal_mode)
+      (cons 73 2)
     )
   )
+)
+
+(defun zbbz-annotate-make-marker (anchor_point layer_name)
+  (setq marker_size (* (zbbz-annotate-gap) 0.45))
+  (setq p1 anchor_point)
+  (setq p2 (list (- (car anchor_point) marker_size) (- (cadr anchor_point) marker_size) 0.0))
+  (setq p3 (list (+ (car anchor_point) marker_size) (- (cadr anchor_point) marker_size) 0.0))
+  (entmakex
+    (list
+      (cons 0 "SOLID")
+      (cons 8 layer_name)
+      (cons 10 p1)
+      (cons 11 p2)
+      (cons 12 p3)
+      (cons 13 p3)
+    )
+  )
+)
+
+(defun zbbz-annotate-group-record (record_id entities)
+  (if (zbbz-state-get 'group_on')
+    (list
+      (cons 'group_name (strcat "ZBBZ-" (itoa record_id)))
+      (cons 'entities entities)
+    )
+    nil
+  )
+)
+
+(defun zbbz-annotate-filter-entities (entities)
+  (setq result nil)
+  (foreach entity entities
+    (if entity
+      (setq result (append result (list entity)))
+    )
+  )
+  result
 )
 
 (defun zbbz-annotate-store-record (record)
@@ -120,21 +206,49 @@
   (setq text_style (zbbz-annotate-text-style-name))
   (setq point_output (zbbz-annotate-point-output anchor_point))
   (setq text_lines (zbbz-annotate-text-lines point_output))
-  (setq mtext_value (zbbz-annotate-mtext-string text_lines))
-  (setq text_angle (zbbz-annotate-text-angle anchor_point text_point))
   (setq record_id (zbbz-annotate-next-id))
-  (setq leader_entity (zbbz-annotate-make-line anchor_point text_point layer_name))
-  (setq text_entity
-    (zbbz-annotate-make-mtext
-      text_point
-      mtext_value
+  (setq text_anchor (zbbz-annotate-text-anchor-point anchor_point text_point))
+  (setq elbow_point (zbbz-annotate-elbow-point anchor_point text_anchor))
+  (setq line_end_point (zbbz-annotate-horizontal-end-point anchor_point text_anchor))
+  (setq upper_text_point (zbbz-annotate-upper-text-point text_anchor))
+  (setq lower_text_point (zbbz-annotate-lower-text-point text_anchor))
+  (setq text_height (zbbz-annotate-text-height))
+  (setq horizontal_mode (zbbz-annotate-horizontal-mode anchor_point text_anchor))
+  (setq marker_entity (zbbz-annotate-make-marker anchor_point layer_name))
+  (setq leader_entity_1 (zbbz-annotate-make-line anchor_point elbow_point layer_name))
+  (setq leader_entity_2 (zbbz-annotate-make-line elbow_point line_end_point layer_name))
+  (setq upper_text_entity
+    (zbbz-annotate-make-text
+      upper_text_point
+      (car text_lines)
       layer_name
       text_style
-      (* (zbbz-state-get 'text_height) (zbbz-state-get 'dim_scale))
-      text_angle
+      text_height
+      horizontal_mode
     )
   )
-  (setq entity_ids (list leader_entity text_entity))
+  (setq lower_text_entity
+    (zbbz-annotate-make-text
+      lower_text_point
+      (cadr text_lines)
+      layer_name
+      text_style
+      text_height
+      horizontal_mode
+    )
+  )
+  (setq entity_ids
+    (zbbz-annotate-filter-entities
+      (list
+        marker_entity
+        leader_entity_1
+        leader_entity_2
+        upper_text_entity
+        lower_text_entity
+      )
+    )
+  )
+  (setq group_record (zbbz-annotate-group-record record_id entity_ids))
   (zbbz-annotate-store-record
     (list
       (cons 'id record_id)
@@ -144,12 +258,12 @@
       (cons 'prefix_mode (zbbz-state-get 'prefix_mode))
       (cons 'text_line_1 (car text_lines))
       (cons 'text_line_2 (cadr text_lines))
-      (cons 'rotation text_angle)
+      (cons 'rotation 0.0)
       (cons 'dim_scale (zbbz-state-get 'dim_scale))
       (cons 'text_height (zbbz-state-get 'text_height))
       (cons 'layer layer_name)
       (cons 'entities entity_ids)
-      (cons 'group nil)
+      (cons 'group group_record)
     )
   )
 )
