@@ -25,7 +25,9 @@
   (zbbz-load-all)
   (prompt "\nZBBZ command started.")
   (if (zbbz-dialog-open-loop)
-    (zbbz-annotate-run-loop)
+    (progn
+      (prompt "\nZBBZ dialog opened successfully.")
+      (zbbz-annotate-run-loop))
     (prompt "\nZBBZ dialog canceled."))
   (princ))
 

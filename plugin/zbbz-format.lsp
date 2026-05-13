@@ -28,7 +28,7 @@
       (setq first_value value2)
       (setq second_value value1)
       (setq first_label (cadr labels))
-      (setq second_label (car labels)))))
+      (setq second_label (car labels))))
 
   (list
     (zbbz-format-line first_label first_value precision)
