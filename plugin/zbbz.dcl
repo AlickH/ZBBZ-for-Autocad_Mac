@@ -1,11 +1,15 @@
 SetDimZB : dialog {
   label = "ZBBZ Coordinate Annotation Settings";
-  initial_focus = "coord_mode";
+  initial_focus = "coord_current";
   spacer;
   : row {
     : boxed_column {
       label = "Coordinate System";
-      : popup_list { key = "coord_mode"; label = "Coordinate System"; list = "Current Coordinate System\nWorld Coordinate System\nCustom Coordinate System"; value = "0"; }
+      : radio_column {
+        : radio_button { key = "coord_current"; label = "Current Coordinate System"; value = "1"; }
+        : radio_button { key = "coord_world"; label = "World Coordinate System"; value = "0"; }
+        : radio_button { key = "coord_custom"; label = "Custom Coordinate System"; value = "0"; }
+      }
       : edit_box { key = "base_n"; label = "Base N"; edit_width = 18; value = "0.000000"; }
       : edit_box { key = "base_e"; label = "Base E"; edit_width = 18; value = "0.000000"; }
       : edit_box { key = "rotation"; label = "Rotation"; edit_width = 18; value = "0.000000"; }
@@ -32,13 +36,20 @@ SetDimZB : dialog {
           fixed_width = true;
         }
       }
-      : boxed_row {
+      : boxed_column {
         label = "Behavior";
-        : list_box { key = "behavior_list"; width = 28; height = 3; multiple_select = true; list = "Swap X/Y\nGroup On\nAuto Orient"; value = ""; }
+        : toggle { key = "swap_xy"; label = "Swap X/Y"; value = "0"; }
+        : toggle { key = "group_on"; label = "Group On"; value = "0"; }
+        : toggle { key = "auto_orient"; label = "Auto Orient"; value = "0"; }
       }
-      : boxed_row {
+      : boxed_column {
         label = "Prefix";
-        : popup_list { key = "prefix_mode"; label = "Prefix"; list = "XY\nAB\nNE\nNone"; value = "0"; }
+        : radio_row {
+          : radio_button { key = "prefix_xy"; label = "XY"; value = "1"; }
+          : radio_button { key = "prefix_ab"; label = "AB"; value = "0"; }
+          : radio_button { key = "prefix_ne"; label = "NE"; value = "0"; }
+          : radio_button { key = "prefix_none"; label = "None"; value = "0"; }
+        }
       }
     }
     : boxed_column {
