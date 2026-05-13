@@ -7,7 +7,9 @@
 (defun zbbz-load-module (name / path)
   (setq path (zbbz-plugin-path name))
   (if (findfile path)
-    (load path)
+    (progn
+      (prompt (strcat "\nLoading module: " path))
+      (load path))
     (prompt (strcat "\nMissing module: " path))))
 
 (defun zbbz-load-all ()
@@ -21,6 +23,12 @@
   (zbbz-load-module "zbbz-dialog.lsp")
   (zbbz-load-module "zbbz-annotate.lsp"))
 
+(defun c:ZBBZDIAG ()
+  (prompt "\nRunning ZBBZ module diagnostics.")
+  (zbbz-load-all)
+  (prompt "\nZBBZ module diagnostics completed.")
+  (princ))
+
 (defun c:ZBBZ ()
   (zbbz-load-all)
   (prompt "\nZBBZ command started.")
@@ -31,5 +39,4 @@
     (prompt "\nZBBZ dialog canceled."))
   (princ))
 
-(zbbz-load-all)
 (princ)
