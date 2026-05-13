@@ -5,7 +5,7 @@ SetDimZB : dialog {
   : row {
     : boxed_column {
       label = "Coordinate System";
-      : radio_column {
+      : radio_column { key = "coord_mode"; value = "coord_current";
         : radio_button { key = "coord_current"; label = "Current Coordinate System"; value = "1"; }
         : radio_button { key = "coord_world"; label = "World Coordinate System"; value = "0"; }
         : radio_button { key = "coord_custom"; label = "Custom Coordinate System"; value = "0"; }
@@ -44,7 +44,7 @@ SetDimZB : dialog {
       }
       : boxed_column {
         label = "Prefix";
-        : radio_row {
+        : radio_row { key = "prefix_mode"; value = "prefix_xy";
           : radio_button { key = "prefix_xy"; label = "XY"; value = "1"; }
           : radio_button { key = "prefix_ab"; label = "AB"; value = "0"; }
           : radio_button { key = "prefix_ne"; label = "NE"; value = "0"; }
