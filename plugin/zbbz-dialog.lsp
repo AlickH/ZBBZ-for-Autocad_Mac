@@ -81,6 +81,12 @@
 (defun zbbz-dialog-default-select (key index)
   (set_tile key (itoa index)))
 
+(defun zbbz-dialog-precision-from-tile (tile_value / dot_pos)
+  (setq dot_pos (vl-string-position (ascii ".") tile_value))
+  (if dot_pos
+    (- (strlen tile_value) dot_pos 1)
+    (atoi tile_value)))
+
 (defun zbbz-dialog-save-edit-number (tile key / value)
   (setq value (distof (get_tile tile) 2))
   (if value
@@ -112,7 +118,7 @@
   (zbbz-state-put 'group_on (= (get_tile "group_on") "1"))
   (zbbz-state-put 'auto_orient (= (get_tile "auto_orient") "1"))
   (zbbz-state-put 'background_mask (= (get_tile "background_mask") "1"))
-  (zbbz-state-put 'precision (atoi (get_tile "precision")))
+  (zbbz-state-put 'precision (zbbz-dialog-precision-from-tile (get_tile "precision")))
   (zbbz-dialog-save-prefix-mode))
 
 (defun zbbz-dialog-request-action (action_code)
