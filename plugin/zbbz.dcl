@@ -61,7 +61,7 @@ SetDimZB : dialog {
   spacer;
   : row {
     : spacer { width = 1; }
-    : spacer;
+    : spacer { width = 30; }
     : button { key = "accept"; label = "OK"; is_default = true; width = 8; fixed_width = true; }
     : button { key = "cancel"; label = "Cancel"; is_cancel = true; width = 8; fixed_width = true; }
     : button { key = "help"; label = "Help"; width = 8; fixed_width = true; }
