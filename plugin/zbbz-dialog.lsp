@@ -1,6 +1,10 @@
 (defun zbbz-dialog-bool-to-tile (value)
   (if value "1" "0"))
 
+(defun zbbz-dialog-debug-prompt (text)
+  (prompt (strcat "\nZBBZDIALOG " text))
+)
+
 (defun zbbz-dialog-set-popup-items (key items / index)
   (start_list key)
   (setq index 0)
@@ -60,6 +64,17 @@
   (mode_tile "pick_two_points" enabled_mode))
 
 (defun zbbz-dialog-populate ()
+  (zbbz-dialog-debug-prompt "populate start")
+  (zbbz-dialog-debug-prompt (strcat "coord_mode=" (vl-prin1-to-string (zbbz-state-get 'coord_mode))))
+  (zbbz-dialog-debug-prompt (strcat "prefix_mode=" (vl-prin1-to-string (zbbz-state-get 'prefix_mode))))
+  (zbbz-dialog-debug-prompt (strcat "precision=" (itoa (zbbz-state-get 'precision))))
+  (zbbz-dialog-debug-prompt (strcat "swap_xy=" (vl-prin1-to-string (zbbz-state-get 'swap_xy))))
+  (zbbz-dialog-debug-prompt (strcat "group_on=" (vl-prin1-to-string (zbbz-state-get 'group_on))))
+  (zbbz-dialog-debug-prompt (strcat "auto_orient=" (vl-prin1-to-string (zbbz-state-get 'auto_orient))))
+  (zbbz-dialog-debug-prompt (strcat "background_mask=" (vl-prin1-to-string (zbbz-state-get 'background_mask))))
+  (zbbz-dialog-debug-prompt (strcat "base_n=" (rtos (zbbz-state-get 'base_n) 2 6)))
+  (zbbz-dialog-debug-prompt (strcat "base_e=" (rtos (zbbz-state-get 'base_e) 2 6)))
+  (zbbz-dialog-debug-prompt (strcat "rotation=" (rtos (zbbz-state-get 'rotation) 2 6)))
   (zbbz-dialog-set-popup-items "coord_mode" (zbbz-dialog-default-coord-mode-items))
   (zbbz-dialog-default-select "coord_mode"
     (cond
@@ -101,6 +116,11 @@
       ((= (zbbz-state-get 'precision) 0) 3)
       ((= (zbbz-state-get 'precision) 4) 4)
       (T 0)))
+  (zbbz-dialog-debug-prompt (strcat "coord_mode tile=" (get_tile "coord_mode")))
+  (zbbz-dialog-debug-prompt (strcat "prefix_mode tile=" (get_tile "prefix_mode")))
+  (zbbz-dialog-debug-prompt (strcat "precision tile=" (get_tile "precision")))
+  (zbbz-dialog-debug-prompt (strcat "behavior_list tile=" (get_tile "behavior_list")))
+  (zbbz-dialog-debug-prompt (strcat "background_mask tile=" (get_tile "background_mask")))
   (zbbz-dialog-update-custom-input-state)
   (zbbz-dialog-sync-preview))
 
