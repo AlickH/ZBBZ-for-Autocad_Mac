@@ -5,6 +5,8 @@
 
 (defun zbbz-dialog-language-source ()
   (strcat
+    (if (zbbz-dialog-language-from-plist) (strcase (zbbz-dialog-language-from-plist)) "")
+    "|"
     (if (getvar "LOCALE") (strcase (getvar "LOCALE")) "")
     "|"
     (if (getenv "LANG") (strcase (getenv "LANG")) "")
@@ -15,8 +17,44 @@
     "|"
     (if (getenv "APPLELOCALE") (strcase (getenv "APPLELOCALE")) "")))
 
+(defun zbbz-dialog-preferences-dir ()
+  (strcat (getenv "HOME") "/Library/Preferences"))
+
+(defun zbbz-dialog-preference-plist-paths (/ files full_paths)
+  (setq files (vl-directory-files (zbbz-dialog-preferences-dir) "com.autodesk.AutoCAD*.plist" 1))
+  (setq full_paths nil)
+  (foreach file_name files
+    (setq full_paths
+      (append full_paths
+        (list (strcat (zbbz-dialog-preferences-dir) "/" file_name)))))
+  (vl-sort
+    full_paths
+    '(lambda (left right)
+       (if (= (wcmatch left "*AutoCADLT*") (wcmatch right "*AutoCADLT*"))
+         (< left right)
+         (not (wcmatch left "*AutoCADLT*"))))))
+
+(defun zbbz-dialog-vl-registry-read-safe (reg_key val_name / result)
+  (setq result (vl-catch-all-apply 'vl-registry-read (list reg_key val_name)))
+  (if (vl-catch-all-error-p result)
+    nil
+    result))
+
+(defun zbbz-dialog-language-from-plist (/ value)
+  (setq value nil)
+  (foreach plist_path (zbbz-dialog-preference-plist-paths)
+    (if (null value)
+      (setq value (zbbz-dialog-vl-registry-read-safe plist_path "AppleLanguages")))
+    (if (null value)
+      (setq value
+        (zbbz-dialog-vl-registry-read-safe
+          (substr plist_path 1 (- (strlen plist_path) 6))
+          "AppleLanguages"))))
+  value)
+
 (defun zbbz-dialog-language-debug-lines ()
   (list
+    (strcat "PLIST_LANGUAGE=" (if (zbbz-dialog-language-from-plist) (vl-prin1-to-string (zbbz-dialog-language-from-plist)) "nil"))
     (strcat "LOCALE=" (if (getvar "LOCALE") (vl-prin1-to-string (getvar "LOCALE")) "nil"))
     (strcat "LANG=" (if (getenv "LANG") (vl-prin1-to-string (getenv "LANG")) "nil"))
     (strcat "LC_ALL=" (if (getenv "LC_ALL") (vl-prin1-to-string (getenv "LC_ALL")) "nil"))
