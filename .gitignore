@@ -1,3 +1,4 @@
 .DS_Store
 plugin/zbbz-debug.log
 plugin/zbbz-runtime.dcl
+plugin/zbbz-config.tmp.lsp
