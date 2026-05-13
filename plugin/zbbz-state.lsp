@@ -129,6 +129,8 @@
 
 (defun zbbz-state-put (key value / state pair)
   (setq state (zbbz-state-ensure))
+  (if (zbbz-state-boolean-key-p key)
+    (setq value (if (zbbz-state-truthy-p value) T nil)))
   (setq pair (assoc key state))
   (if pair
     (setq *zbbz-settings* (subst (cons key value) pair state))
