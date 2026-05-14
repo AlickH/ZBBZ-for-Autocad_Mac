@@ -15,13 +15,7 @@ ZBBZ 是一个 AutoCAD for Mac 坐标标注插件，使用 AutoLISP 和 DCL 实�
 
 ## Settings UI
 
-English:
-
 ![ZBBZ settings dialog in English](docs/images/settings-en.png)
-
-Simplified Chinese:
-
-![ZBBZ settings dialog in Simplified Chinese](docs/images/settings-cn.png)
 
 ## 功能
 
@@ -33,12 +27,6 @@ Simplified Chinese:
 - 设置面板支持英文、简体中文、法语、德语、意大利语、日语、韩语和西班牙语。
 
 ## 设置界面
-
-英文：
-
-![ZBBZ 英文设置界面](docs/images/settings-en.png)
-
-简体中文：
 
 ![ZBBZ 简体中文设置界面](docs/images/settings-cn.png)
 
@@ -90,22 +78,8 @@ ZBBZ.bundle/Contents/zbbz-mac.lsp
 
 - `ZBBZCONFIG`: open the settings dialog.
 - `ZBBZ`: start coordinate annotation with the saved settings.
-- `ZBBZLANGDEBUG`: print language detection diagnostics.
 
 ## 命令
 
 - `ZBBZCONFIG`：打开设置面板。
 - `ZBBZ`：使用已保存设置开始坐标标注。
-- `ZBBZLANGDEBUG`：输出语言检测诊断信息。
-
-## Notes
-
-- This is a Mac-native rebuild and does not load the Windows `.vlx` file.
-- The configuration file is stored beside the plugin files as `zbbz-config.lsp`.
-- AutoCAD DCL controls the native dialog appearance. The plugin does not force a custom light or dark theme.
-
-## 说明
-
-- 这是面向 Mac 的重新实现，不加载 Windows `.vlx` 文件。
-- 配置文件保存在插件文件旁边，文件名为 `zbbz-config.lsp`。
-- 设置面板外观由 AutoCAD DCL 原生控制，插件不强制自定义亮色或暗色主题。
