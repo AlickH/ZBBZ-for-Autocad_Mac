@@ -1,50 +1,36 @@
-# ZBBZ AutoCAD for Mac Install
+# Install / 安装
 
-## Recommended Bundle Install
+## English
 
-Copy the whole folder:
-
-```text
-ZBBZ.bundle
-```
-
-to:
+1. Copy `ZBBZ.bundle` to one of these folders:
 
 ```text
 ~/Library/Application Support/Autodesk/ApplicationAddins
-```
-
-or:
-
-```text
 /Applications/Autodesk/ApplicationAddins
 ```
 
-Then restart AutoCAD. Run:
+2. Restart AutoCAD for Mac.
+3. Run `ZBBZCONFIG` or `ZBBZ`.
+
+Do not APPLOAD the `ZBBZ.bundle` folder directly. For manual loading, select:
 
 ```text
-ZBBZ
-ZBBZCONFIG
+ZBBZ.bundle/Contents/zbbz-mac.lsp
 ```
 
-Do not use APPLOAD to select `ZBBZ.bundle` directly. On AutoCAD for Mac that can treat the bundle folder as a runtime extension and report `doesn't define function acrxEntryPoint`.
+## 中文
 
-## Manual APPLOAD With Loader
-
-If you want to load it manually with APPLOAD, copy both items to the same folder:
+1. 把 `ZBBZ.bundle` 复制到以下任一目录：
 
 ```text
-ZBBZ.bundle
-ZBBZ-APPLOAD.lsp
+~/Library/Application Support/Autodesk/ApplicationAddins
+/Applications/Autodesk/ApplicationAddins
 ```
 
-Then use APPLOAD to select:
+2. 重启 AutoCAD for Mac。
+3. 运行 `ZBBZCONFIG` 或 `ZBBZ`。
 
-```text
-ZBBZ-APPLOAD.lsp
-```
-
-You can also select this file inside the bundle:
+不要在 APPLOAD 中直接选择 `ZBBZ.bundle` 文件夹。手动加载时请选择：
 
 ```text
 ZBBZ.bundle/Contents/zbbz-mac.lsp

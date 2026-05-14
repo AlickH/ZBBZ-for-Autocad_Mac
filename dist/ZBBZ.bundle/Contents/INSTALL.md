@@ -1,16 +1,19 @@
-# ZBBZ AutoCAD for Mac Install
+# Install / 安装
 
-Copy the whole `ZBBZ.bundle` folder to one of these folders:
+Copy `ZBBZ.bundle` to:
 
 ```text
 ~/Library/Application Support/Autodesk/ApplicationAddins
 /Applications/Autodesk/ApplicationAddins
 ```
 
-Restart AutoCAD, then run `ZBBZ` or `ZBBZCONFIG`.
+Then restart AutoCAD for Mac and run `ZBBZCONFIG` or `ZBBZ`.
 
-Do not select `ZBBZ.bundle` itself in APPLOAD. For manual APPLOAD, select the separate `ZBBZ-APPLOAD.lsp` loader placed next to `ZBBZ.bundle`, or select:
+把 `ZBBZ.bundle` 复制到：
 
 ```text
-ZBBZ.bundle/Contents/zbbz-mac.lsp
+~/Library/Application Support/Autodesk/ApplicationAddins
+/Applications/Autodesk/ApplicationAddins
 ```
+
+然后重启 AutoCAD for Mac，运行 `ZBBZCONFIG` 或 `ZBBZ`。
