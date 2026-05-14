@@ -80,6 +80,8 @@
   (strcat
     (if (zbbz-dialog-language-from-plist) (strcase (zbbz-dialog-language-from-plist)) "")
     "|"
+    (if (zbbz-dialog-language-from-preference-files) (strcase (zbbz-dialog-language-from-preference-files)) "")
+    "|"
     (if (getvar "LOCALE") (strcase (getvar "LOCALE")) "")
     "|"
     (if (getenv "LANG") (strcase (getenv "LANG")) "")
@@ -135,6 +137,40 @@
       (setq value (zbbz-dialog-vl-registry-read-safe plist_key value_name))))
   value)
 
+(defun zbbz-dialog-file-contains-token-p (file_path token / file_handle code matched token_length)
+  (setq file_handle (open file_path "r"))
+  (setq matched 0)
+  (setq token_length (strlen token))
+  (if file_handle
+    (progn
+      (while (and (< matched token_length) (setq code (read-char file_handle)))
+        (if (= code (ascii (substr token (+ matched 1) 1)))
+          (setq matched (+ matched 1))
+          (if (= code (ascii (substr token 1 1)))
+            (setq matched 1)
+            (setq matched 0))))
+      (close file_handle)))
+  (= matched token_length))
+
+(defun zbbz-dialog-preference-files-contain-p (tokens / found)
+  (setq found nil)
+  (foreach plist_path (zbbz-dialog-preference-plist-paths)
+    (foreach token tokens
+      (if (and (null found) (zbbz-dialog-file-contains-token-p plist_path token))
+        (setq found T))))
+  found)
+
+(defun zbbz-dialog-language-from-preference-files ()
+  (cond
+    ((zbbz-dialog-preference-files-contain-p '("zh-Hans" "zh-Hant" "/CHS/" "/CHT/" "CHINESE")) "zh")
+    ((zbbz-dialog-preference-files-contain-p '("fr-" "/FRA/" "FRENCH")) "fr")
+    ((zbbz-dialog-preference-files-contain-p '("de-" "/DEU/" "GERMAN")) "de")
+    ((zbbz-dialog-preference-files-contain-p '("it-" "/ITA/" "ITALIAN")) "it")
+    ((zbbz-dialog-preference-files-contain-p '("ja-" "/JPN/" "JAPANESE")) "ja")
+    ((zbbz-dialog-preference-files-contain-p '("ko-" "/KOR/" "KOREAN")) "ko")
+    ((zbbz-dialog-preference-files-contain-p '("es-" "/ESP/" "SPANISH")) "es")
+    (T nil)))
+
 (defun zbbz-dialog-language-from-plist ()
   (zbbz-dialog-preference-value "AppleLanguages"))
 
@@ -145,6 +181,7 @@
   (list
     (strcat "LISPSYS=" (if (zbbz-dialog-lispsys) (vl-prin1-to-string (zbbz-dialog-lispsys)) "nil"))
     (strcat "PLIST_LANGUAGE=" (if (zbbz-dialog-language-from-plist) (vl-prin1-to-string (zbbz-dialog-language-from-plist)) "nil"))
+    (strcat "PLIST_FILE_LANGUAGE=" (if (zbbz-dialog-language-from-preference-files) (vl-prin1-to-string (zbbz-dialog-language-from-preference-files)) "nil"))
     (strcat "PLIST_HELP_URL=" (if (zbbz-dialog-help-url-from-plist) (vl-prin1-to-string (zbbz-dialog-help-url-from-plist)) "nil"))
     (strcat "LOCALE=" (if (getvar "LOCALE") (vl-prin1-to-string (getvar "LOCALE")) "nil"))
     (strcat "LANG=" (if (getenv "LANG") (vl-prin1-to-string (getenv "LANG")) "nil"))
