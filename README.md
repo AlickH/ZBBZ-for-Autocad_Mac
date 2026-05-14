@@ -13,6 +13,16 @@ ZBBZ 是一个 AutoCAD for Mac 坐标标注插件，使用 AutoLISP 和 DCL 实�
 - DAT export for the current annotation session.
 - English, Simplified Chinese, French, German, Italian, Japanese, Korean, and Spanish UI text.
 
+## Settings UI
+
+English:
+
+![ZBBZ settings dialog in English](docs/images/settings-en.png)
+
+Simplified Chinese:
+
+![ZBBZ settings dialog in Simplified Chinese](docs/images/settings-cn.png)
+
 ## 功能
 
 - 添加带引线的坐标标注。
@@ -21,6 +31,16 @@ ZBBZ 是一个 AutoCAD for Mac 坐标标注插件，使用 AutoLISP 和 DCL 实�
 - 支持通过已知两点校准自定义坐标系统。
 - 可导出当前标注会话的 DAT 文件。
 - 设置面板支持英文、简体中文、法语、德语、意大利语、日语、韩语和西班牙语。
+
+## 设置界面
+
+英文：
+
+![ZBBZ 英文设置界面](docs/images/settings-en.png)
+
+简体中文：
+
+![ZBBZ 简体中文设置界面](docs/images/settings-cn.png)
 
 ## Install
 
