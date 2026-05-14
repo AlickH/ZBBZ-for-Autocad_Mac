@@ -127,6 +127,7 @@
 
 (defun zbbz-dialog-system-language-from-preference-files ()
   (cond
+    ((zbbz-dialog-system-preference-files-contain-p '("en-US" "en_US" "en-" "en_")) "en")
     ((zbbz-dialog-system-preference-files-contain-p '("zh-Hans" "zh-Hant" "zh_Hans" "zh_Hant" "ZH")) "zh")
     ((zbbz-dialog-system-preference-files-contain-p '("fr-" "fr_" "FRENCH")) "fr")
     ((zbbz-dialog-system-preference-files-contain-p '("de-" "de_" "GERMAN")) "de")
@@ -155,6 +156,11 @@
 (defun zbbz-dialog-auto-language-key (/ language_source)
   (setq language_source (zbbz-dialog-language-source))
   (cond
+    ((or (wcmatch language_source "*EN-US*")
+         (wcmatch language_source "*EN_US*")
+         (wcmatch language_source "*EN-*")
+         (wcmatch language_source "*EN_*"))
+      "en")
     ((or (wcmatch language_source "*ZH*")
          (wcmatch language_source "*CHS*")
          (wcmatch language_source "*CHT*")
