@@ -99,127 +99,61 @@
     (strcat (zbbz-dialog-preferences-dir) "/.GlobalPreferences.plist")
     (strcat (zbbz-dialog-preferences-dir) "/.GlobalPreferences_m.plist")))
 
-(defun zbbz-dialog-read-file-bytes (file_path / file_handle code bytes)
-  (setq file_handle (open file_path "r"))
-  (setq bytes nil)
-  (if file_handle
-    (progn
-      (while (setq code (read-char file_handle))
-        (setq bytes (cons code bytes)))
-      (close file_handle)))
-  (reverse bytes))
+(defun zbbz-dialog-vl-registry-read-safe (reg_key val_name / result)
+  (setq result (vl-catch-all-apply 'vl-registry-read (list reg_key val_name)))
+  (if (vl-catch-all-error-p result)
+    nil
+    result))
 
-(defun zbbz-dialog-byte-at (bytes index)
-  (nth index bytes))
-
-(defun zbbz-dialog-read-uint (bytes start length / value index)
-  (setq value 0)
-  (setq index 0)
-  (while (< index length)
-    (setq value (+ (* value 256) (zbbz-dialog-byte-at bytes (+ start index))))
+(defun zbbz-dialog-first-quoted-string (text / index length start end)
+  (setq index 1)
+  (setq length (strlen text))
+  (setq start nil)
+  (setq end nil)
+  (while (and (null start) (<= index length))
+    (if (= (substr text index 1) "\"")
+      (setq start (+ index 1)))
     (setq index (+ index 1)))
+  (while (and start (null end) (<= index length))
+    (if (= (substr text index 1) "\"")
+      (setq end index))
+    (setq index (+ index 1)))
+  (if (and start end)
+    (substr text start (- end start))))
+
+(defun zbbz-dialog-language-first-from-value (value / text)
+  (cond
+    ((= (type value) 'STR) value)
+    ((and (= (type value) 'LIST) (= (type (car value)) 'STR)) (car value))
+    (T
+      (setq text (vl-prin1-to-string value))
+      (zbbz-dialog-first-quoted-string text))))
+
+(defun zbbz-dialog-system-preference-keys (/ keys plist_path)
+  (setq keys (list "Apple Global Domain" "NSGlobalDomain" ".GlobalPreferences"))
+  (foreach plist_path (zbbz-dialog-system-preference-plist-paths)
+    (setq keys
+      (append keys
+        (list
+          plist_path
+          (substr plist_path 1 (- (strlen plist_path) 6))))))
+  keys)
+
+(defun zbbz-dialog-system-preference-value (value_name / preference_key value)
+  (setq value nil)
+  (foreach preference_key (zbbz-dialog-system-preference-keys)
+    (if (null value)
+      (setq value (zbbz-dialog-vl-registry-read-safe preference_key value_name))))
   value)
 
-(defun zbbz-dialog-bplist-object-offset (bytes object_index offset_size offset_table_offset)
-  (zbbz-dialog-read-uint bytes (+ offset_table_offset (* object_index offset_size)) offset_size))
-
-(defun zbbz-dialog-bplist-object-length (bytes object_offset / info int_marker int_bytes)
-  (setq info (rem (zbbz-dialog-byte-at bytes object_offset) 16))
-  (if (< info 15)
-    (list info 1)
-    (progn
-      (setq int_marker (zbbz-dialog-byte-at bytes (+ object_offset 1)))
-      (setq int_bytes (expt 2 (rem int_marker 16)))
-      (list (zbbz-dialog-read-uint bytes (+ object_offset 2) int_bytes) (+ 2 int_bytes)))))
-
-(defun zbbz-dialog-bplist-parse-string (bytes object_offset / marker kind length_info text start index code)
-  (setq marker (zbbz-dialog-byte-at bytes object_offset))
-  (setq kind (fix (/ marker 16)))
-  (setq length_info (zbbz-dialog-bplist-object-length bytes object_offset))
-  (setq text "")
-  (setq start (+ object_offset (cadr length_info)))
-  (setq index 0)
-  (cond
-    ((= kind 5)
-      (while (< index (car length_info))
-        (setq text (strcat text (chr (zbbz-dialog-byte-at bytes (+ start index)))))
-        (setq index (+ index 1)))
-      text)
-    ((= kind 6)
-      (while (< index (car length_info))
-        (setq code (zbbz-dialog-read-uint bytes (+ start (* index 2)) 2))
-        (if (< code 128)
-          (setq text (strcat text (chr code))))
-        (setq index (+ index 1)))
-      text)
-    (T nil)))
-
-(defun zbbz-dialog-bplist-ref (bytes start index ref_size)
-  (zbbz-dialog-read-uint bytes (+ start (* index ref_size)) ref_size))
-
-(defun zbbz-dialog-bplist-array-first-ref (bytes object_offset ref_size / marker length_info start)
-  (setq marker (zbbz-dialog-byte-at bytes object_offset))
-  (if (= (fix (/ marker 16)) 10)
-    (progn
-      (setq length_info (zbbz-dialog-bplist-object-length bytes object_offset))
-      (if (> (car length_info) 0)
-        (progn
-          (setq start (+ object_offset (cadr length_info)))
-          (zbbz-dialog-bplist-ref bytes start 0 ref_size))))
-    nil))
-
-(defun zbbz-dialog-bplist-dict-value-ref (bytes object_offset ref_size key_name offset_size offset_table_offset / marker length_info count keys_start values_start index found_index key_ref key_offset key_text)
-  (setq marker (zbbz-dialog-byte-at bytes object_offset))
-  (if (= (fix (/ marker 16)) 13)
-    (progn
-      (setq length_info (zbbz-dialog-bplist-object-length bytes object_offset))
-      (setq count (car length_info))
-      (setq keys_start (+ object_offset (cadr length_info)))
-      (setq values_start (+ keys_start (* count ref_size)))
-      (setq index 0)
-      (setq found_index nil)
-      (while (< index count)
-        (setq key_ref (zbbz-dialog-bplist-ref bytes keys_start index ref_size))
-        (setq key_offset (zbbz-dialog-bplist-object-offset bytes key_ref offset_size offset_table_offset))
-        (setq key_text (zbbz-dialog-bplist-parse-string bytes key_offset))
-        (if (= key_text key_name)
-          (progn
-            (setq found_index index)
-            (setq index count))
-          (setq index (+ index 1))))
-      (if found_index
-        (zbbz-dialog-bplist-ref bytes values_start found_index ref_size)))
-    nil))
-
-(defun zbbz-dialog-bplist-apple-languages-first (file_path / bytes byte_count offset_size ref_size object_count top_object offset_table_offset top_offset languages_ref languages_offset first_ref first_offset)
-  (setq bytes (zbbz-dialog-read-file-bytes file_path))
-  (if (> (length bytes) 40)
-    (progn
-      (setq byte_count (length bytes))
-      (setq offset_size (zbbz-dialog-byte-at bytes (- byte_count 26)))
-      (setq ref_size (zbbz-dialog-byte-at bytes (- byte_count 25)))
-      (setq object_count (zbbz-dialog-read-uint bytes (- byte_count 24) 8))
-      (setq top_object (zbbz-dialog-read-uint bytes (- byte_count 16) 8))
-      (setq offset_table_offset (zbbz-dialog-read-uint bytes (- byte_count 8) 8))
-      (if (> object_count 0)
-        (progn
-          (setq top_offset (zbbz-dialog-bplist-object-offset bytes top_object offset_size offset_table_offset))
-          (setq languages_ref (zbbz-dialog-bplist-dict-value-ref bytes top_offset ref_size "AppleLanguages" offset_size offset_table_offset))
-          (if languages_ref
-            (progn
-              (setq languages_offset (zbbz-dialog-bplist-object-offset bytes languages_ref offset_size offset_table_offset))
-              (setq first_ref (zbbz-dialog-bplist-array-first-ref bytes languages_offset ref_size))
-              (if first_ref
-                (progn
-                  (setq first_offset (zbbz-dialog-bplist-object-offset bytes first_ref offset_size offset_table_offset))
-                  (zbbz-dialog-bplist-parse-string bytes first_offset))))))))))
-
 (defun zbbz-dialog-system-language-first (/ language)
-  (setq language nil)
-  (foreach plist_path (zbbz-dialog-system-preference-plist-paths)
-    (if (null language)
-      (setq language (zbbz-dialog-bplist-apple-languages-first plist_path))))
-  language)
+  (setq language
+    (zbbz-dialog-language-first-from-value
+      (zbbz-dialog-system-preference-value "AppleLanguages")))
+  (if language
+    language
+    (zbbz-dialog-language-first-from-value
+      (zbbz-dialog-system-preference-value "AppleLocale"))))
 
 (defun zbbz-dialog-language-code-from-tag (language_tag / source)
   (setq source (strcase language_tag))
