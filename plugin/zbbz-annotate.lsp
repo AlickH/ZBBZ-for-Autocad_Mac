@@ -132,6 +132,14 @@
 (defun zbbz-annotate-mtext-attachment (horizontal_mode)
   (if (= horizontal_mode 2) 6 4))
 
+(defun zbbz-annotate-mtext-width ( text_value text_height / width )
+  (setq width (* text_height (strlen text_value) 0.72))
+  (if (< width (* text_height 3.0))
+    (setq width (* text_height 3.0))
+  )
+  width
+)
+
 (defun zbbz-annotate-make-mtext ( insert_point text_value layer_name text_style text_height horizontal_mode )
   (setq result
     (entmakex
@@ -146,7 +154,9 @@
         (cons 7 text_style)
         (cons 62 1)
         (cons 71 (zbbz-annotate-mtext-attachment horizontal_mode))
-        (cons 90 2)
+        (cons 41 (zbbz-annotate-mtext-width text_value text_height))
+        (cons 90 1)
+        (cons 63 250)
         (cons 45 1.1)
       )
     )
