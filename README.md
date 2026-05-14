@@ -1,4 +1,4 @@
-# ZBBZ Coordinate Annotation
+# ZBBZ for Autocad_Mac
 
 AutoCAD for Mac coordinate annotation plugin built with AutoLISP and DCL.
 

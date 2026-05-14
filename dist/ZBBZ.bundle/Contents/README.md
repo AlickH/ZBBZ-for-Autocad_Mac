@@ -1,4 +1,4 @@
-# ZBBZ Coordinate Annotation
+# ZBBZ for Autocad_Mac
 
 Commands:
 
