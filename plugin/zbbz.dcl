@@ -67,7 +67,7 @@ SetDimZB : dialog {
       : edit_box { key = "text_height"; label = "Text Height"; edit_width = 12; value = "2.500000"; }
       : toggle { key = "background_mask"; label = "Background Mask"; value = "0"; }
       : button { key = "export_dat"; label = "Generate DAT File"; }
-      : popup_list { key = "dialog_language"; label = "Dialog Language"; list = "Follow AutoCAD\nEnglish\nChinese, Simplified\nFrench\nGerman\nItalian\nJapanese\nKorean\nSpanish"; value = "0"; }
+      : popup_list { key = "dialog_language"; label = "Dialog Language"; list = "Follow System\nEnglish\nChinese, Simplified\nFrench\nGerman\nItalian\nJapanese\nKorean\nSpanish"; value = "0"; }
     }
   }
   spacer;

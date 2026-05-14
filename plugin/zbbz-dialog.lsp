@@ -78,11 +78,7 @@
 
 (defun zbbz-dialog-language-source ()
   (strcat
-    (if (zbbz-dialog-language-from-plist) (strcase (zbbz-dialog-language-from-plist)) "")
-    "|"
-    (if (zbbz-dialog-language-from-preference-files) (strcase (zbbz-dialog-language-from-preference-files)) "")
-    "|"
-    (if (getvar "LOCALE") (strcase (getvar "LOCALE")) "")
+    (if (zbbz-dialog-system-language-from-preference-files) (strcase (zbbz-dialog-system-language-from-preference-files)) "")
     "|"
     (if (getenv "LANG") (strcase (getenv "LANG")) "")
     "|"
@@ -98,44 +94,10 @@
 (defun zbbz-dialog-preferences-dir ()
   (strcat (getenv "HOME") "/Library/Preferences"))
 
-(defun zbbz-dialog-preference-plist-paths (/ files full_paths)
-  (setq files (vl-directory-files (zbbz-dialog-preferences-dir) "com.autodesk.AutoCAD*.plist" 1))
-  (setq full_paths nil)
-  (foreach file_name files
-    (setq full_paths
-      (append full_paths
-        (list (strcat (zbbz-dialog-preferences-dir) "/" file_name)))))
-  (vl-sort
-    full_paths
-    '(lambda (left right)
-       (if (= (wcmatch left "*AutoCADLT*") (wcmatch right "*AutoCADLT*"))
-         (< left right)
-         (not (wcmatch left "*AutoCADLT*"))))))
-
-(defun zbbz-dialog-preference-keys (/ plist_path keys domain_name)
-  (setq keys nil)
-  (foreach plist_path (zbbz-dialog-preference-plist-paths)
-    (setq domain_name (vl-filename-base plist_path))
-    (setq keys
-      (append keys
-        (list
-          plist_path
-          (substr plist_path 1 (- (strlen plist_path) 6))
-          domain_name))))
-  keys)
-
-(defun zbbz-dialog-vl-registry-read-safe (reg_key val_name / result)
-  (setq result (vl-catch-all-apply 'vl-registry-read (list reg_key val_name)))
-  (if (vl-catch-all-error-p result)
-    nil
-    result))
-
-(defun zbbz-dialog-preference-value (value_name / value)
-  (setq value nil)
-  (foreach plist_key (zbbz-dialog-preference-keys)
-    (if (null value)
-      (setq value (zbbz-dialog-vl-registry-read-safe plist_key value_name))))
-  value)
+(defun zbbz-dialog-system-preference-plist-paths ()
+  (list
+    (strcat (zbbz-dialog-preferences-dir) "/.GlobalPreferences.plist")
+    (strcat (zbbz-dialog-preferences-dir) "/.GlobalPreferences_m.plist")))
 
 (defun zbbz-dialog-file-contains-token-p (file_path token / file_handle code matched token_length)
   (setq file_handle (open file_path "r"))
@@ -152,37 +114,32 @@
       (close file_handle)))
   (= matched token_length))
 
-(defun zbbz-dialog-preference-files-contain-p (tokens / found)
+(defun zbbz-dialog-plist-files-contain-p (plist_paths tokens / found)
   (setq found nil)
-  (foreach plist_path (zbbz-dialog-preference-plist-paths)
+  (foreach plist_path plist_paths
     (foreach token tokens
       (if (and (null found) (zbbz-dialog-file-contains-token-p plist_path token))
         (setq found T))))
   found)
 
-(defun zbbz-dialog-language-from-preference-files ()
+(defun zbbz-dialog-system-preference-files-contain-p (tokens)
+  (zbbz-dialog-plist-files-contain-p (zbbz-dialog-system-preference-plist-paths) tokens))
+
+(defun zbbz-dialog-system-language-from-preference-files ()
   (cond
-    ((zbbz-dialog-preference-files-contain-p '("zh-Hans" "zh-Hant" "/CHS/" "/CHT/" "CHINESE")) "zh")
-    ((zbbz-dialog-preference-files-contain-p '("fr-" "/FRA/" "FRENCH")) "fr")
-    ((zbbz-dialog-preference-files-contain-p '("de-" "/DEU/" "GERMAN")) "de")
-    ((zbbz-dialog-preference-files-contain-p '("it-" "/ITA/" "ITALIAN")) "it")
-    ((zbbz-dialog-preference-files-contain-p '("ja-" "/JPN/" "JAPANESE")) "ja")
-    ((zbbz-dialog-preference-files-contain-p '("ko-" "/KOR/" "KOREAN")) "ko")
-    ((zbbz-dialog-preference-files-contain-p '("es-" "/ESP/" "SPANISH")) "es")
+    ((zbbz-dialog-system-preference-files-contain-p '("zh-Hans" "zh-Hant" "zh_Hans" "zh_Hant" "ZH")) "zh")
+    ((zbbz-dialog-system-preference-files-contain-p '("fr-" "fr_" "FRENCH")) "fr")
+    ((zbbz-dialog-system-preference-files-contain-p '("de-" "de_" "GERMAN")) "de")
+    ((zbbz-dialog-system-preference-files-contain-p '("it-" "it_" "ITALIAN")) "it")
+    ((zbbz-dialog-system-preference-files-contain-p '("ja-" "ja_" "JAPANESE")) "ja")
+    ((zbbz-dialog-system-preference-files-contain-p '("ko-" "ko_" "KOREAN")) "ko")
+    ((zbbz-dialog-system-preference-files-contain-p '("es-" "es_" "SPANISH")) "es")
     (T nil)))
-
-(defun zbbz-dialog-language-from-plist ()
-  (zbbz-dialog-preference-value "AppleLanguages"))
-
-(defun zbbz-dialog-help-url-from-plist ()
-  (zbbz-dialog-preference-value "AcHelpBaseURL"))
 
 (defun zbbz-dialog-language-debug-lines ()
   (list
     (strcat "LISPSYS=" (if (zbbz-dialog-lispsys) (vl-prin1-to-string (zbbz-dialog-lispsys)) "nil"))
-    (strcat "PLIST_LANGUAGE=" (if (zbbz-dialog-language-from-plist) (vl-prin1-to-string (zbbz-dialog-language-from-plist)) "nil"))
-    (strcat "PLIST_FILE_LANGUAGE=" (if (zbbz-dialog-language-from-preference-files) (vl-prin1-to-string (zbbz-dialog-language-from-preference-files)) "nil"))
-    (strcat "PLIST_HELP_URL=" (if (zbbz-dialog-help-url-from-plist) (vl-prin1-to-string (zbbz-dialog-help-url-from-plist)) "nil"))
+    (strcat "SYSTEM_FILE_LANGUAGE=" (if (zbbz-dialog-system-language-from-preference-files) (vl-prin1-to-string (zbbz-dialog-system-language-from-preference-files)) "nil"))
     (strcat "LOCALE=" (if (getvar "LOCALE") (vl-prin1-to-string (getvar "LOCALE")) "nil"))
     (strcat "LANG=" (if (getenv "LANG") (vl-prin1-to-string (getenv "LANG")) "nil"))
     (strcat "LC_ALL=" (if (getenv "LC_ALL") (vl-prin1-to-string (getenv "LC_ALL")) "nil"))
@@ -196,11 +153,7 @@
     (prompt (strcat "\n" line))))
 
 (defun zbbz-dialog-auto-language-key (/ language_source)
-  (setq language_source
-    (strcat
-      (if (zbbz-dialog-help-url-from-plist) (strcase (zbbz-dialog-help-url-from-plist)) "")
-      "|"
-      (zbbz-dialog-language-source)))
+  (setq language_source (zbbz-dialog-language-source))
   (cond
     ((or (wcmatch language_source "*ZH*")
          (wcmatch language_source "*CHS*")
@@ -246,21 +199,21 @@
     (setq setting (zbbz-dialog-auto-language-key)))
   setting)
 
-(defun zbbz-dialog-follow-autocad-label (/ language_key)
+(defun zbbz-dialog-follow-system-label (/ language_key)
   (setq language_key (zbbz-dialog-language-key))
   (cond
-    ((= language_key "zh") "跟随 AutoCAD")
-    ((= language_key "fr") "Suivre AutoCAD")
-    ((= language_key "de") "AutoCAD folgen")
-    ((= language_key "it") "Segui AutoCAD")
-    ((= language_key "ja") "AutoCAD に合わせる")
-    ((= language_key "ko") "AutoCAD 따르기")
-    ((= language_key "es") "Seguir AutoCAD")
-    (T "Follow AutoCAD")))
+    ((= language_key "zh") "跟随系统语言")
+    ((= language_key "fr") "Suivre la langue du systeme")
+    ((= language_key "de") "Systemsprache folgen")
+    ((= language_key "it") "Segui lingua di sistema")
+    ((= language_key "ja") "システム言語に合わせる")
+    ((= language_key "ko") "시스템 언어 따르기")
+    ((= language_key "es") "Seguir idioma del sistema")
+    (T "Follow System")))
 
 (defun zbbz-dialog-language-options ()
   (list
-    (cons "cad" (zbbz-dialog-follow-autocad-label))
+    (cons "system" (zbbz-dialog-follow-system-label))
     (cons "en" "English")
     (cons "zh" "简体中文 (Chinese, Simplified)")
     (cons "fr" "français (French)")
@@ -642,7 +595,7 @@
         (setq runtime_line (strcat "      : popup_list { key = \"text_style\"; label = \"Text Style\"; list = \"*CURRENT*\\nStandard\"; value = \"" (if (equal text_style "Standard") "1" "0") "\"; }"))))
     ((equal line "      : popup_list { key = \"precision\"; label = \"Precision\"; list = \"0.000\\n0.00\\n0.0\\n0\\n0.0000\"; value = \"0\"; }")
       (setq runtime_line (strcat "      : popup_list { key = \"precision\"; label = \"Precision\"; list = \"0.000\\n0.00\\n0.0\\n0\\n0.0000\"; value = \"" (zbbz-dialog-precision-index) "\"; }")))
-    ((equal line "      : popup_list { key = \"dialog_language\"; label = \"Dialog Language\"; list = \"Follow AutoCAD\\nEnglish\\nChinese, Simplified\\nFrench\\nGerman\\nItalian\\nJapanese\\nKorean\\nSpanish\"; value = \"0\"; }")
+    ((equal line "      : popup_list { key = \"dialog_language\"; label = \"Dialog Language\"; list = \"Follow System\\nEnglish\\nChinese, Simplified\\nFrench\\nGerman\\nItalian\\nJapanese\\nKorean\\nSpanish\"; value = \"0\"; }")
       (setq runtime_line (strcat "      : popup_list { key = \"dialog_language\"; label = \"Dialog Language\"; list = \"" (zbbz-dialog-language-list-string) "\"; value = \"" (zbbz-dialog-language-index) "\"; }")))
     ((equal line "        : edit_box { key = \"bearing_angle\"; label = \"Bearing\"; edit_width = 12; value = \"0.000000\"; }")
       (setq runtime_line (strcat "        : edit_box { key = \"bearing_angle\"; label = \"Bearing\"; edit_width = 12; value = \"" (zbbz-format-number (zbbz-dialog-get 'bearing_angle) 6) "\"; }")))
@@ -742,7 +695,7 @@
 
 (defun zbbz-dialog-save-language-value (raw_value)
   (zbbz-dialog-put 'dialog_language
-    (nth (atoi raw_value) '("cad" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
+    (nth (atoi raw_value) '("system" "en" "zh" "fr" "de" "it" "ja" "ko" "es"))))
 
 (defun zbbz-dialog-request-action (action_code)
   (setq *zbbz-dialog-action* action_code)
